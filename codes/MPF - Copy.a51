@@ -58,7 +58,6 @@ ORG 0003H
     ACALL KEY_INPUT             ; updates R1
     ACALL UPDATE_STATE_FLAGS    ; update R0 which is the state of the FSM, also save input data
     ; visualization
-    ACALL SET_DATA_ON_SEGMENT
     ACALL SHOW_ON_SEGMENT
     ; check if we should execute
     JNB EXE_FLAG, ISR_NON_EXE
@@ -134,6 +133,15 @@ COL_ROW_TO_KEY:
 
 
 UPDATE_STATE_FLAGS:
+    ; check if input was a special function, should not change accumulator value
+    MOV 0FFH, A
+    MOV A, R1
+    ANL A, #0F0H
+    CJNE A, #0C0H, NON_SPECIAL_FUNCTION
+    MOV A, 0FFH
+    ACALL FUNCTION_CALL
+    RET
+    NON_SPECIAL_FUNCTION:
     ; check if input is numeric
     MOV A, R1
     ANL A, #0F0H
@@ -144,8 +152,6 @@ UPDATE_STATE_FLAGS:
     CLR EXE_FLAG    ; will be set in cases
     CLR WRONG_FLAG  ; will be set in cases
     CLR END_FLAG
-    ; check if input was a special function
-    ; TODO
     ; check if input was END
     CJNE R1, #END_KEY, GENERAL_KEY
     SETB END_FLAG
@@ -155,16 +161,14 @@ UPDATE_STATE_FLAGS:
     RET
     ; Perform the switch-case
     GENERAL_KEY:
-        CASE_0:
-            CJNE R0, #00H , CASE_1
+        CASE_0: CJNE R0, #00H , CASE_1
             ORG_CLICK_0:
                 CJNE R1, #ORG_KEY, WRONG_KEY_0
                 MOV R0, #001H    ; update state
                 JMP DEFAULT_CASE
             WRONG_KEY_0:
                 JMP WRONG_KEY
-        CASE_1:
-            CJNE R0, #01H , CASE_2
+        CASE_1: CJNE R0, #01H , CASE_2
             NUMBER_KEY_1:
                 JNB NUMBER_INPUT_FLAG, NON_NUMBER_KEY_1
                 MOV R0, #002H
@@ -172,8 +176,7 @@ UPDATE_STATE_FLAGS:
                 JMP DEFAULT_CASE
             NON_NUMBER_KEY_1:
                 JMP WRONG_KEY
-        CASE_2:
-            CJNE R0, #02H , CASE_3
+        CASE_2: CJNE R0, #02H , CASE_3
             NUMBER_KEY_2:
                 JNB NUMBER_INPUT_FLAG, NON_NUMBER_KEY_2
                 MOV R0, #003H
@@ -181,8 +184,7 @@ UPDATE_STATE_FLAGS:
                 JMP DEFAULT_CASE
             NON_NUMBER_KEY_2:
                 JMP WRONG_KEY
-        CASE_3:
-            CJNE R0, #03H , CASE_4
+        CASE_3: CJNE R0, #03H , CASE_4
             EXE_CLICK_3:
                 CJNE R1, #EXECUTE, WRONG_KEY_3
                 MOV R0, #004H
@@ -198,8 +200,7 @@ UPDATE_STATE_FLAGS:
                     JMP DEFAULT_CASE
                 NON_NUMBER_KEY_3:
                     JMP WRONG_KEY
-        CASE_4:
-            CJNE R0, #04H , CASE_5
+        CASE_4: CJNE R0, #04H , CASE_5
             NUMBER_KEY_4:
                 JNB NUMBER_INPUT_FLAG, NON_NUMBER_KEY_4
                 MOV R0, #005H
@@ -207,8 +208,7 @@ UPDATE_STATE_FLAGS:
                 JMP DEFAULT_CASE
             NON_NUMBER_KEY_4:
                 JMP WRONG_KEY
-        CASE_5:
-            CJNE R0, #05H , CASE_6
+        CASE_5: CJNE R0, #05H , CASE_6
             NUMBER_KEY_5:
                 JNB NUMBER_INPUT_FLAG, NON_NUMBER_KEY_4
                 MOV R0, #006H
@@ -216,8 +216,7 @@ UPDATE_STATE_FLAGS:
                 JMP DEFAULT_CASE
             NON_NUMBER_KEY_5:
                 JMP WRONG_KEY
-        CASE_6:
-            CJNE R0, #06H , CASE_7
+        CASE_6: CJNE R0, #06H , CASE_7
             EXE_CLICK_6:
                 CJNE R1, #EXECUTE, WRONG_KEY_6
                 MOV R0, #007H
@@ -230,8 +229,7 @@ UPDATE_STATE_FLAGS:
                     JMP DEFAULT_CASE
                 NON_NUMBER_KEY_6:
                     JMP WRONG_KEY
-        CASE_7:
-            CJNE R0, #07H , DEFAULT_CASE
+        CASE_7: CJNE R0, #07H , DEFAULT_CASE
             ORG_CLICK_7:
                 CJNE R1, #ORG_KEY, ADR_PLUS_CLICK_7
                 MOV R0, #001H
@@ -258,6 +256,7 @@ UPDATE_STATE_FLAGS:
     WRONG_KEY:
         SETB WRONG_FLAG
     DEFAULT_CASE:
+        ACALL SET_DATA_ON_SEGMENT
         RET
 
 UPDATE_ADDRESS_INPUT:
@@ -274,6 +273,32 @@ UPDATE_DATA_INPUT:
     ANL A, #0F0H
     ORL A, R1 
     MOV R2, A
+    RET
+
+FUNCTION_CALL:
+    F1_CALL: CJNE R1, #F1, F2_CALL
+    RET ; do nothing, it should show the accumilator
+    F2_CALL: CJNE R1, #F2, F3_CALL
+    MOV A, R0 ; show current state
+    RET
+    F3_CALL: CJNE R1, #F3, F4_CALL
+    MOV A, R3 ; show current adress
+    RET
+    F4_CALL: CJNE R1, #F4, F5_CALL
+    MOV A, R2 ; show current data
+    RET
+    F5_CALL: CJNE R1, #F5, F6_CALL
+    MOV A, R6 ; show code start
+    RET
+    F6_CALL: CJNE R1, #F6, F7_CALL
+    MOV A, B ; show B register
+    RET
+    F7_CALL: CJNE R1, #F7, F8_CALL
+    MOV A, 0CFH ; show data in specific part of memory
+    RET
+    F8_CALL: CJNE R1, #F8, DEFAULT_CALL
+    DEFAULT_CALL:
+    ACALL SET_DATA_ON_SEGMENT
     RET
 
 SET_DATA_ON_SEGMENT:
@@ -381,9 +406,10 @@ DECODE_AND_EXECUTE:
         ERROR: JMP ERROR
     RET
 
+
 ; delay  generator subroutine
 DELAY:
-    MOV 0FEH, #020H ; Following delay will reapeat  31 times
+    MOV 0FEH, #00AH ; Following delay will reapeat  31 times
     WAIT2:MOV TMOD, #001H
     MOV TL0, #000H
     MOV TH0, #000H
