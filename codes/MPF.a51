@@ -1,6 +1,20 @@
 ;====================================================================
 ; DEFINITIONS
 ;====================================================================
+; addresses
+;====================================================================
+; in coding mode
+; P0 is the State of the FSM
+; P1 is the Input
+; P2 is the input data
+; P3 is the input address
+;====================================================================
+; in execution mode
+; P6 is the beggining address
+; R1 is the PC
+; R3 is the stack
+; R4 is the IR
+;====================================================================
 ; 00H to 0FH are numeric inputs
 ORG_KEY EQU 010H
 ADR_PLUS EQU 011H
@@ -43,6 +57,9 @@ ORG 0003H
     CLR EX0                     ; Disable external interrupt0
     ACALL KEY_INPUT             ; updates R1
     ACALL UPDATE_STATE_FLAGS    ; update R0 which is the state of the FSM, also save input data
+    ; visualization
+    ACALL SET_DATA_ON_SEGMENT
+    ACALL SHOW_ON_SEGMENT
     ; check if we should execute
     JNB EXE_FLAG, ISR_NON_EXE
     ACALL RUN_EXE
@@ -53,10 +70,9 @@ ORG 0003H
     ISR_NON_WRONG:
     ; check if code should be run
     JNB END_FLAG, ISR_NON_END
-    ACALL RUN_CODE
+    JMP RUN_CODE ; go to execution
     ISR_NON_END:
     ; reset and return from interrupt
-    MOV P1, R2
     SETB EA             ; Enable interrupt individually
     SETB EX0            ; Enable external interrupt0
     SETB P3.1           ; Enable interrupt
@@ -170,6 +186,9 @@ UPDATE_STATE_FLAGS:
             EXE_CLICK_3:
                 CJNE R1, #EXECUTE, WRONG_KEY_3
                 MOV R0, #004H
+                ; beginning value of PC
+                MOV A , R3
+                MOV R6, A
                 SETB EXE_FLAG 
                 JMP DEFAULT_CASE
             WRONG_KEY_3:
@@ -257,6 +276,19 @@ UPDATE_DATA_INPUT:
     MOV R2, A
     RET
 
+SET_DATA_ON_SEGMENT:
+    MOV A , R0
+    ANL A, #11111100B
+    CJNE A, #0H , SHOW_R2_ON_SEGMENT
+    MOV A, R3
+    RET
+    SHOW_R2_ON_SEGMENT:
+    MOV A, R2
+    RET
+
+SHOW_ON_SEGMENT: ; current implementation is very basic
+    MOV P1, A
+    RET
 
 MAIN:
     ACALL INIT
@@ -280,7 +312,13 @@ INIT:
     SETB EX0        ; Enable external interrupt0
     RET
 
-WRONG_PRESS:
+WRONG_PRESS: ; make the segments blink
+    MOV B, P0
+    MOV A, #88H
+    ACALL SHOW_ON_SEGMENT
+    ACALL DELAY
+    MOV A, P0
+    ACALL SHOW_ON_SEGMENT
     RET
     
 RUN_EXE:
@@ -296,6 +334,399 @@ RUN_EXE:
     RET
 
 RUN_CODE:
+    INIT_RUN:
+    MOV A , R6
+    MOV R1, A       ; PC
+    ; we do not use a MAR since using basic asm we can implement its functionality
+    MOV R4, #00H    ; IR
+    MOV R3, #00H    ; STACK
+    FETCH:
+    MOV 0FFH, A
+    MOV A, @R1
+    MOV R4, A ; IR <- @PC
+    MOV A, 0FFH
+    ACALL DECODE_AND_EXECUTE
+    JMP FETCH ; will not exit, need to use RST, or write new code
+    
+DECODE_AND_EXECUTE:
+    NOP_MNEMONIC: CJNE R4, #000H, INC_A_MNEMONIC
+        EXECUTE_END: 
+            ACALL SHOW_ON_SEGMENT ; show accumilator on segment
+            JMP LOOP ; end execution
+    RET
+    
+    INC_A_MNEMONIC: CJNE R4, #004H, INC_R0_MNEMONIC
+        INC A ; Increase A
+        INC R1 ; PC=PC+1
+    RET
+    
+    INC_R0_MNEMONIC: CJNE R4, #008H, INC_R2_MNEMONIC
+        INC R0 ; Increase R0
+        INC R1 ; PC=PC+1
+    RET
+    
+    INC_R2_MNEMONIC: CJNE R4, #00AH, INC_R5_MNEMONIC
+        INC R2 ; Increase R2
+        INC R1 ; PC=PC+1
+    RET
+    
+    INC_R5_MNEMONIC: CJNE R4, #00DH, INC_R6_MNEMONIC
+        INC R5 ; Increase R5
+        INC R1 ; PC=PC+1
+    RET
+    
+    INC_R6_MNEMONIC: CJNE R4, #00EH, INC_R7_MNEMONIC
+        INC R6 ; Increase R6
+        INC R1 ; PC=PC+1
+    RET
+    
+    INC_R7_MNEMONIC: CJNE R4, #00FH, ACALL_MNEMONIC
+        INC R7 ; Increase R7
+        INC R1 ; PC=PC+1
+    RET
+    
+    ACALL_MNEMONIC: CJNE R4, #011H, DEC_A_MNEMONIC
+        INC R1 ; PC=PC+1
+        INC R1 ; PC=PC+1
+        MOV 0FFH, A
+        MOV A, R1
+        MOV R3, A ; Move next PC value to stack
+        DEC R1
+        MOV A, @R1 
+        MOV R1, A ; Move the next address to PC
+        MOV A, 0FFH
+    RET
+    
+    DEC_A_MNEMONIC: CJNE R4, #014H, DEC_R0_MNEMONIC
+        DEC A ; Decrease A
+        INC R1 ; PC=PC+1
+    RET
+    
+    DEC_R0_MNEMONIC: CJNE R4, #018H, DEC_R2_MNEMONIC
+        DEC R0 ; Decrease R0
+        INC R1 ; PC=PC+1
+    RET
+    
+    DEC_R2_MNEMONIC: CJNE R4, #01AH, DEC_R5_MNEMONIC
+        DEC R2 ; Decrease R2
+        INC R1 ; PC=PC+1
+    RET
+    
+    DEC_R5_MNEMONIC: CJNE R4, #01DH, DEC_R6_MNEMONIC
+        DEC R5 ; Decrease R5
+        INC R1 ; PC=PC+1
+    RET
+    
+    DEC_R6_MNEMONIC: CJNE R4, #01EH, DEC_R7_MNEMONIC
+        DEC R6 ; Decrease R6
+        INC R1 ; PC=PC+1
+    RET
+    
+    DEC_R7_MNEMONIC: CJNE R4, #01FH, JB_MNEMONIC
+        DEC R7 ; Decrease R7
+        INC R1 ; PC=PC+1
+    RET
+    
+    JB_MNEMONIC: CJNE R4, #020H, RET_MNEMONIC
+        
+    RET
+    
+    RET_MNEMONIC: CJNE R4, #022H, ADD_IMMEDIATE_MNEMONIC
+        MOV 0FFH, A
+        MOV A, R3
+        MOV R1, A ; Move stack to PC
+        MOV A, 0FFH
+    RET
+    
+    ADD_IMMEDIATE_MNEMONIC: CJNE R4, #024H, ADD_R0_MNEMONIC
+        INC R1 ; PC=PC+1
+        MOV 0FFH, A
+        MOV A, @R1 
+        MOV R4, A ; Move the value in next memory location to R4
+        MOV A, 0FFH
+        ADD A, R4 ; Add A with the value in the next memory location
+        INC R1 ; PC=PC+1
+    RET
+    
+    ADD_R0_MNEMONIC: CJNE R4, #028H, ADD_R2_MNEMONIC
+    ADD A, R0 ; Add  A with value of R0
+    INC R1 
+    RET
+    
+    ADD_R2_MNEMONIC: CJNE R4, #02AH, ADD_R5_MNEMONIC
+    ADD A, R2 ; Add  A with value of R0
+    INC R1 
+    RET
+    
+    ADD_R5_MNEMONIC: CJNE R4, #02DH, ADD_R6_MNEMONIC
+    ADD A, R5 ; Add  A with value of R5
+    INC R1 
+    RET
+    
+    ADD_R6_MNEMONIC: CJNE R4, #02EH, ADD_R7_MNEMONIC
+    ADD A, R6 ; Add  A with value of R6
+    INC R1 
+    RET
+    
+    ADD_R7_MNEMONIC: CJNE R4, #02FH, JNB_MNEMONIC
+    ADD A, R7 ; Add  A with value of R7
+    INC R1 
+    RET
+    
+    JNB_MNEMONIC: CJNE R4, #030H, ADDC_IMMIDIATE_MNEMONIC
+    
+    RET
+    
+    ADDC_IMMIDIATE_MNEMONIC: CJNE R4, #034H, ADDC_R0_MNEMONIC
+        INC R1 ; PC=PC+1
+        MOV 0FFH, A
+        MOV A, @R1 
+        MOV R4, A ; Move the value in next memory location to R4
+        MOV A, 0FFH
+        ADDC A, R4 ; Add A with the value in the next memory location
+        INC R1 ; PC=PC+1
+    RET
+    
+    ADDC_R0_MNEMONIC: CJNE R4, #038H, ADDC_R2_MNEMONIC
+        ADDC A, R0 ; Add  A with value of R0
+        INC R1
+    RET
+    
+    ADDC_R2_MNEMONIC: CJNE R4, #03AH, ADDC_R5_MNEMONIC
+        ADDC A, R2 ; Add  A with value of R2
+        INC R1
+    RET
+    
+    ADDC_R5_MNEMONIC: CJNE R4, #03DH, ADDC_R6_MNEMONIC
+        ADD A, R5 ; Add  A with value of R5
+        INC R1 
+    RET
+    
+    ADDC_R6_MNEMONIC: CJNE R4, #03EH, ADDC_R7_MNEMONIC
+        ADD A, R6 ; Add  A with value of R6
+        INC R1
+    RET
+    
+    ADDC_R7_MNEMONIC: CJNE R4, #03FH, JZ_MNEMONIC
+        ADD A, R7 ; Add  A with value of R7
+        INC R1 
+    RET
+    
+    JZ_MNEMONIC: CJNE R4, #060H, JNZ_MNEMONIC
+    
+    RET
+    
+    JNZ_MNEMONIC: CJNE R4, #070H, AJMP_MNEMONIC
+    
+    RET
+    
+    AJMP_MNEMONIC: CJNE R4, #061H, MOV_A_IMMIDIATE_MNEMONIC
+        INC R1 ; PC=PC+1
+        MOV 0FFH, A
+        MOV A, @R1 
+        MOV R1, A ; Move the next address to PC
+        MOV A, 0FFH
+    RET
+    
+    MOV_A_IMMIDIATE_MNEMONIC: CJNE R4, #074H, MOV_R0_IMMIDIATE_MNEMONIC
+        INC R1 
+        MOV A, @R1
+        INC R1
+    RET
+    
+    MOV_R0_IMMIDIATE_MNEMONIC: CJNE R4, #078H, MOV_R2_IMMIDIATE_MNEMONIC
+        INC R1 
+        MOV 0FFH, A
+        MOV A, @R1
+        MOV R0, A
+        MOV A, 0FFH
+        INC R1
+    RET
+    
+    MOV_R2_IMMIDIATE_MNEMONIC: CJNE R4, #07AH, MOV_R5_IMMIDIATE_MNEMONIC
+        INC R1 
+        MOV 0FFH, A
+        MOV A, @R1
+        MOV R2, A
+        MOV A, 0FFH
+        INC R1
+    RET
+    
+    MOV_R5_IMMIDIATE_MNEMONIC: CJNE R4, #07DH, MOV_R6_IMMIDIATE_MNEMONIC
+        INC R1 
+        MOV 0FFH, A
+        MOV A, @R1
+        MOV R5, A
+        MOV A, 0FFH
+        INC R1
+    RET
+    
+    MOV_R6_IMMIDIATE_MNEMONIC: CJNE R4, #07EH, MOV_R7_IMMIDIATE_MNEMONIC
+        INC R1 
+        MOV 0FFH, A
+        MOV A, @R1
+        MOV R6, A
+        MOV A, 0FFH
+        INC R1
+    RET
+    
+    MOV_R7_IMMIDIATE_MNEMONIC: CJNE R4, #07FH, SUBB_A_IMMIDIATE_MNEMONIC
+        INC R1 
+        MOV 0FFH, A
+        MOV A, @R1
+        MOV R7, A
+        MOV A, 0FFH
+        INC R1
+    RET
+    
+    SUBB_A_IMMIDIATE_MNEMONIC: CJNE R4, #094H,SUBB_A_R0_MNEMONIC
+        INC R1 ; PC=PC+1
+        MOV 0FFH, A
+        MOV A, @R1 
+        MOV R4, A ; Move the value in next memory location to R4
+        MOV A, 0FFH
+        SUBB  A, R4 ; Subtract A by value which is in next memory location
+        INC R1 ; PC=PC+1
+    RET
+    
+    SUBB_A_R0_MNEMONIC: CJNE R4, #098H, SUBB_A_R2_MNEMONIC
+        SUBB A, R0 ; Subtract A by value of R0
+        INC R1
+    RET
+    
+    SUBB_A_R2_MNEMONIC: CJNE R4, #09AH, SUBB_A_R5_MNEMONIC
+        SUBB A, R2 ; Subtract A by value of R2
+        INC R1
+    RET
+    
+    SUBB_A_R5_MNEMONIC: CJNE R4, #09DH, SUBB_A_R6_MNEMONIC
+        SUBB A, R5 ; Subtract A by value of R5
+        INC R1
+    RET
+    
+    SUBB_A_R6_MNEMONIC: CJNE R4, #09EH, SUBB_A_R7_MNEMONIC
+        SUBB A, R6 ; Subtract A by value of R6
+        INC R1
+    RET
+    
+    SUBB_A_R7_MNEMONIC: CJNE R4, #09FH, CPL_BIT_MNEMONIC
+        SUBB A, R7 ; Subtract A by value of R7
+        INC R1
+    RET
+    
+    CPL_BIT_MNEMONIC: CJNE R4, #0B2H, CJNE_A_IMMEDIATE_MNEMONIC
+    
+    RET
+    
+    CJNE_A_IMMEDIATE_MNEMONIC: CJNE R4, #0B4H, CJNE_R0_IMMEDIATE_MNEMONIC
+    
+    RET
+    
+    CJNE_R0_IMMEDIATE_MNEMONIC: CJNE R4, #0B8H, CJNE_R2_IMMEDIATE_MNEMONIC
+    
+    RET
+    
+    CJNE_R2_IMMEDIATE_MNEMONIC: CJNE R4, #0BAH, CJNE_R5_IMMEDIATE_MNEMONIC
+    
+    RET
+    
+    CJNE_R5_IMMEDIATE_MNEMONIC: CJNE R4, #0BDH, CJNE_R6_IMMEDIATE_MNEMONIC
+    
+    RET
+    
+    CJNE_R6_IMMEDIATE_MNEMONIC: CJNE R4, #0BEH, CJNE_R7_IMMEDIATE_MNEMONIC
+    
+    RET
+    
+    CJNE_R7_IMMEDIATE_MNEMONIC: CJNE R4, #0BFH, CLR_BIT_MNEMONIC
+    
+    RET
+    
+    CLR_BIT_MNEMONIC: CJNE R4, #0C2H, SETB_BIT_MNEMONIC
+    
+    RET
+    
+    SETB_BIT_MNEMONIC: CJNE R4, #0D2H, CLR_A_MNEMONIC
+    
+    RET
+    
+    CLR_A_MNEMONIC: CJNE R4, #0E4H, MOV_A_R0_MNEMONIC
+        MOV A, #000H
+        INC R1
+    RET
+    
+    MOV_A_R0_MNEMONIC: CJNE R4, #0E8H, MOV_A_R2_MNEMONIC
+        MOV A, R0
+        INC R1
+    RET
+    
+    MOV_A_R2_MNEMONIC: CJNE R4, #0EAH, MOV_A_R5_MNEMONIC
+        MOV  A, R2
+        INC R1
+    RET
+    
+    MOV_A_R5_MNEMONIC: CJNE R4, #0EDH, MOV_A_R6_MNEMONIC
+        MOV A, R5
+        INC R1
+    RET
+    
+    MOV_A_R6_MNEMONIC: CJNE R4, #0EEH, MOV_A_R7_MNEMONIC
+        MOV A, R6
+        INC R1
+    RET
+    
+    MOV_A_R7_MNEMONIC: CJNE R4, #0EFH, CPL_A_MNEMONIC
+        MOV A, R7
+        INC R1
+    RET
+    
+    CPL_A_MNEMONIC: CJNE R4, #0F4H, MOV_R0_A_MNEMONIC
+        CPL A
+        INC R1
+    RET
+    
+    MOV_R0_A_MNEMONIC: CJNE R4, #0F8H, MOV_R2_A_MNEMONIC
+        MOV R0, A
+        INC R1
+    RET
+    
+    MOV_R2_A_MNEMONIC: CJNE R4, #0FAH, MOV_R5_A_MNEMONIC
+        MOV R2, A
+        INC R1
+    RET
+    
+    MOV_R5_A_MNEMONIC: CJNE R4, #0FDH, MOV_R6_A_MNEMONIC
+        MOV R5, A
+        INC R1
+    RET
+    
+    MOV_R6_A_MNEMONIC: CJNE R4, #0FEH, MOV_R7_A_MNEMONIC
+        MOV R6, A
+        INC R1
+    RET
+    
+    MOV_R7_A_MNEMONIC: CJNE R4, #0FFH, INVALID_OPCODE
+        MOV R7, A
+        INC R1
+    RET
+    
+    INVALID_OPCODE:
+        MOV P1, #0FFH
+        ERROR: JMP ERROR
+    RET
+
+
+; delay  generator subroutine
+DELAY:
+    MOV 0FEH, #00AH ; Following delay will reapeat  31 times
+    WAIT2:MOV TMOD, #001H
+    MOV TL0, #000H
+    MOV TH0, #000H
+    SETB TR0
+    WAIT1: JNB TF0, WAIT1
+    CLR TF0
+    CLR TR0
+    DJNZ 0FEH, WAIT2
     RET
     
 END

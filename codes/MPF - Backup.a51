@@ -1,20 +1,6 @@
 ;====================================================================
 ; DEFINITIONS
 ;====================================================================
-; addresses
-;====================================================================
-; in coding mode
-; P0 is the State of the FSM
-; P1 is the Input
-; P2 is the input data
-; P3 is the input address
-;====================================================================
-; in execution mode
-; P6 is the beggining address
-; R1 is the PC
-; R3 is the stack
-; R4 is the IR
-;====================================================================
 ; 00H to 0FH are numeric inputs
 ORG_KEY EQU 010H
 ADR_PLUS EQU 011H
@@ -70,7 +56,7 @@ ORG 0003H
     ISR_NON_WRONG:
     ; check if code should be run
     JNB END_FLAG, ISR_NON_END
-    JMP RUN_CODE ; go to execution
+    ACALL RUN_CODE
     ISR_NON_END:
     ; reset and return from interrupt
     SETB EA             ; Enable interrupt individually
@@ -186,9 +172,6 @@ UPDATE_STATE_FLAGS:
             EXE_CLICK_3:
                 CJNE R1, #EXECUTE, WRONG_KEY_3
                 MOV R0, #004H
-                ; beginning value of PC
-                MOV A , R3
-                MOV R6, A
                 SETB EXE_FLAG 
                 JMP DEFAULT_CASE
             WRONG_KEY_3:
@@ -334,56 +317,11 @@ RUN_EXE:
     RET
 
 RUN_CODE:
-    INIT_RUN:
-    MOV A , R6
-    MOV R1, A       ; PC
-    ; we do not use a MAR since using basic asm we can implement its functionality
-    MOV R4, #00H    ; IR
-    MOV R3, #00H    ; STACK
-    FETCH:
-    MOV 0FFH, A
-    MOV A, @R1
-    MOV R4, A ; IR <- @PC
-    MOV A, 0FFH
-    ACALL DECODE_AND_EXECUTE
-    JMP FETCH ; will not exit, need to use RST, or write new code
-    
-DECODE_AND_EXECUTE:
-    NOP_MNEMONIC: CJNE R4, #000H, INC_A_MNEMONIC
-        EXECUTE_END: 
-            ACALL SHOW_ON_SEGMENT ; show accumilator on segment
-            JMP LOOP ; end execution
     RET
     
-    INC_A_MNEMONIC: CJNE R4, #004H, ADD_IMMEDIATE_MNEMONIC
-        INC A ; Increase A
-        INC R1 ; PC=PC+1
-    RET
-
-    ADD_IMMEDIATE_MNEMONIC: CJNE R4, #024H, MOV_A_IMMIDIATE_MNEMONIC
-        INC R1 ; PC=PC+1
-        MOV 0FFH, A
-        MOV A, @R1 
-        MOV R4, A ; Move the value in next memory location to R4
-        MOV A, 0FFH
-        ADD A, R4 ; Add A with the value in the next memory location
-        INC R1 ; PC=PC+1
-    RET
-
-    MOV_A_IMMIDIATE_MNEMONIC: CJNE R4, #074H, INVALID_OPCODE
-        INC R1 
-        MOV A, @R1
-        INC R1
-    RET
-
-    INVALID_OPCODE:
-        MOV P1, #0FFH
-        ERROR: JMP ERROR
-    RET
-
 ; delay  generator subroutine
 DELAY:
-    MOV 0FEH, #020H ; Following delay will reapeat  31 times
+    MOV 0FEH, #00AH ; Following delay will reapeat  31 times
     WAIT2:MOV TMOD, #001H
     MOV TL0, #000H
     MOV TH0, #000H
