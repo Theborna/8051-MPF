@@ -1,4 +1,4 @@
-8051 Assembler           Version 1.00   06/30/123 13:34:36    Page 1
+8051 Assembler           Version 1.00   07/01/123 02:00:18    Page 1
 C:\Users\borna\OneDrive\Documents\uni-borna\computer structure\project\codes\MPF - Copy.a51
 
 
@@ -60,7 +60,7 @@ C:\Users\borna\OneDrive\Documents\uni-borna\computer structure\project\codes\MPF
       0D1D C6 C7
    48 0D1F              
    49 0D1F              
-8051 Assembler           Version 1.00   06/30/123 13:34:36    Page 2
+8051 Assembler           Version 1.00   07/01/123 02:00:18    Page 2
 C:\Users\borna\OneDrive\Documents\uni-borna\computer structure\project\codes\MPF - Copy.a51
 
 
@@ -122,7 +122,7 @@ C:\Users\borna\OneDrive\Documents\uni-borna\computer structure\project\codes\MPF
   104 051D B4FF03               CJNE A, #0FFH, ROW2
   105 0520 7D00                 MOV R5, #000H
   106 0522 22                   RET
-8051 Assembler           Version 1.00   06/30/123 13:34:36    Page 3
+8051 Assembler           Version 1.00   07/01/123 02:00:18    Page 3
 C:\Users\borna\OneDrive\Documents\uni-borna\computer structure\project\codes\MPF - Copy.a51
 
 
@@ -184,7 +184,7 @@ C:\Users\borna\OneDrive\Documents\uni-borna\computer structure\project\codes\MPF
   161 0570 22               RET
   162 0571                  ; Perform the switch-case
   163 0571                  GENERAL_KEY:
-8051 Assembler           Version 1.00   06/30/123 13:34:36    Page 4
+8051 Assembler           Version 1.00   07/01/123 02:00:18    Page 4
 C:\Users\borna\OneDrive\Documents\uni-borna\computer structure\project\codes\MPF - Copy.a51
 
 
@@ -246,7 +246,7 @@ C:\Users\borna\OneDrive\Documents\uni-borna\computer structure\project\codes\MPF
   218 05D5 D130                         ACALL RESET_DATA_REG
   219 05D7 02062D                       JMP DEFAULT_CASE
   220 05DA                          WRONG_KEY_4:
-8051 Assembler           Version 1.00   06/30/123 13:34:36    Page 5
+8051 Assembler           Version 1.00   07/01/123 02:00:18    Page 5
 C:\Users\borna\OneDrive\Documents\uni-borna\computer structure\project\codes\MPF - Copy.a51
 
 
@@ -308,7 +308,7 @@ C:\Users\borna\OneDrive\Documents\uni-borna\computer structure\project\codes\MPF
   275 0636 A8FF             MOV R0, 0FFH
   276 0638 22               RET
   277 0639              
-8051 Assembler           Version 1.00   06/30/123 13:34:36    Page 6
+8051 Assembler           Version 1.00   07/01/123 02:00:18    Page 6
 C:\Users\borna\OneDrive\Documents\uni-borna\computer structure\project\codes\MPF - Copy.a51
 
 
@@ -370,7 +370,7 @@ C:\Users\borna\OneDrive\Documents\uni-borna\computer structure\project\codes\MPF
   332 067D 22               RET
   333 067E              
   334 067E              MAIN:
-8051 Assembler           Version 1.00   06/30/123 13:34:36    Page 7
+8051 Assembler           Version 1.00   07/01/123 02:00:18    Page 7
 C:\Users\borna\OneDrive\Documents\uni-borna\computer structure\project\codes\MPF - Copy.a51
 
 
@@ -432,7 +432,7 @@ C:\Users\borna\OneDrive\Documents\uni-borna\computer structure\project\codes\MPF
   389 06C7 09               INC R1 ; PC <- PC + 1
   390 06C8 D1CD             ACALL DECODE_AND_EXECUTE
   391 06CA 0206C1           JMP FETCH ; will not exit, need to use RST, or write new code
-8051 Assembler           Version 1.00   06/30/123 13:34:36    Page 8
+8051 Assembler           Version 1.00   07/01/123 02:00:18    Page 8
 C:\Users\borna\OneDrive\Documents\uni-borna\computer structure\project\codes\MPF - Copy.a51
 
 
@@ -494,7 +494,7 @@ C:\Users\borna\OneDrive\Documents\uni-borna\computer structure\project\codes\MPF
   446 0711                  
   447 0711 BC1F02           DEC_R7_MNEMONIC: CJNE R4, #01FH, JB_MNEMONIC
   448 0714 1F                   DEC R7
-8051 Assembler           Version 1.00   06/30/123 13:34:36    Page 9
+8051 Assembler           Version 1.00   07/01/123 02:00:18    Page 9
 C:\Users\borna\OneDrive\Documents\uni-borna\computer structure\project\codes\MPF - Copy.a51
 
 
@@ -556,17 +556,17 @@ C:\Users\borna\OneDrive\Documents\uni-borna\computer structure\project\codes\MPF
   503 075A F9                   MOV R1, A
   504 075B E5FF                 MOV A, 0FFH
   505 075D 22               RET
-8051 Assembler           Version 1.00   06/30/123 13:34:36    Page 10
+8051 Assembler           Version 1.00   07/01/123 02:00:18    Page 10
 C:\Users\borna\OneDrive\Documents\uni-borna\computer structure\project\codes\MPF - Copy.a51
 
 
 
   506 075E                  
   507 075E BC700B           JNZ_MNEMONIC: CJNE R4, #070H, AJMP_MNEMONIC
-  508 0761 7002                 JNZ NZERO_JZ_MNEMONIC
+  508 0761 7002                 JNZ NZERO_JNZ_MNEMONIC
   509 0763 09                   INC R1
   510 0764 22                   RET
-  511 0765                      NZERO_JZ_MNEMONIC:
+  511 0765                      NZERO_JNZ_MNEMONIC:
   512 0765 F5FF                 MOV 0FFH, A
   513 0767 E7                   MOV A, @R1 
   514 0768 F9                   MOV R1, A
@@ -618,7 +618,7 @@ C:\Users\borna\OneDrive\Documents\uni-borna\computer structure\project\codes\MPF
   560 07A7 22               RET
   561 07A8                  
   562 07A8 BCE802           MOV_A_R0_MNEMONIC: CJNE R4, #0E8H, MOV_A_R2_MNEMONIC
-8051 Assembler           Version 1.00   06/30/123 13:34:36    Page 11
+8051 Assembler           Version 1.00   07/01/123 02:00:18    Page 11
 C:\Users\borna\OneDrive\Documents\uni-borna\computer structure\project\codes\MPF - Copy.a51
 
 
@@ -680,7 +680,7 @@ C:\Users\borna\OneDrive\Documents\uni-borna\computer structure\project\codes\MPF
   617 07F4 C28C             CLR TR0
   618 07F6 D5FEEB           DJNZ 0FEH, WAIT2
   619 07F9 22               RET
-8051 Assembler           Version 1.00   06/30/123 13:34:36    Page 12
+8051 Assembler           Version 1.00   07/01/123 02:00:18    Page 12
 C:\Users\borna\OneDrive\Documents\uni-borna\computer structure\project\codes\MPF - Copy.a51
 
 
@@ -803,7 +803,7 @@ Defined Labels:
   NUMBER_KEY_4                              0005BE  1470
   NUMBER_KEY_5                              0005E0  1504
   NUMBER_KEY_6                              0005FA  1530
-  NZERO_JZ_MNEMONIC                         000765  1893
+  NZERO_JNZ_MNEMONIC                        000765  1893
   ORG_CLICK_0                               000574  1396
   ORG_CLICK_7                               000608  1544
   RESET_DATA_REG                            000630  1584

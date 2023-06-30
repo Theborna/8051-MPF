@@ -3,3 +3,34 @@ TEST_1
 MOV A, #02H : 74, 02
 ADD A, #03H : 24, 03
 NOP         : 00
+
+;================================================================
+
+TEST_2:
+
+MOV R4, n
+MOV R7, m
+MOV A, #00H ; result register
+LOOP:
+    MOV A, R5
+    ADD A, R4
+    MOV R5, A
+    DEC R7
+    MOV A, R3
+    JNZ LOOP
+
+; machine code
+
+64: 7C
+65: n
+66: 7F
+67: m
+68: 74
+69: 00
+6A: ED 
+6B: 2C
+6C: FD 
+6D: 1F
+6E: EB 
+6F: 60
+70: 00

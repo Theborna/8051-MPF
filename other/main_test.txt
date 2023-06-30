@@ -22,7 +22,7 @@ LOOP:
 66: 78 (MOV R0, #data)
 67: m
 68: 7D (MOV A, #data)
-69: 1
+69: 01
 6A: ED (MOV A, R5)
 6B: F6 (MOV @R0, A)
 6C: 08 (INC R0)

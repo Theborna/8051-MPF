@@ -505,10 +505,10 @@ DECODE_AND_EXECUTE:
     RET
     
     JNZ_MNEMONIC: CJNE R4, #070H, AJMP_MNEMONIC
-        JNZ NZERO_JZ_MNEMONIC
+        JNZ NZERO_JNZ_MNEMONIC
         INC R1
         RET
-        NZERO_JZ_MNEMONIC:
+        NZERO_JNZ_MNEMONIC:
         MOV 0FFH, A
         MOV A, @R1 
         MOV R1, A
