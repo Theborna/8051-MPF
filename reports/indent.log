@@ -1,10 +1,10 @@
-INFO:  latexindent.pl version 3.18, 2022-06-12, a script to indent .tex files
+INFO:  latexindent.pl version 3.22, 2023-06-01, a script to indent .tex files
        latexindent.pl lives here: C:/Users/borna/AppData/Local/Programs/MiKTeX/scripts/latexindent/
-       Sat Jun 24 21:25:29 2023
-       Filename: c:\Users\borna\OneDrive\Documents\uni-borna\computer structure\lab\lab8\report\report.tex
+       Fri Jun 30 02:23:27 2023
+       Filename: c:\Users\borna\OneDrive\Documents\uni-borna\computer structure\project\reports\report.tex
 INFO:  Processing switches:
 INFO:  Directory for backup files and indent.log:
-       c:\Users\borna\OneDrive\Documents\uni-borna\computer structure\lab\lab8\report
+       c:\Users\borna\OneDrive\Documents\uni-borna\computer structure\project\reports
 INFO:  Perl modules are being loaded from the following directories:
        C:/Strawberry/perl/lib/FindBin.pm
        C:/Strawberry/perl/vendor/lib/YAML/Tiny.pm
@@ -16,10 +16,10 @@ INFO:  LatexIndent perl modules are being loaded from, for example:
        C:/Users/borna/AppData/Local/Programs/MiKTeX/scripts/latexindent/LatexIndent/Document.pm
 INFO:  YAML settings read: defaultSettings.yaml
        Reading defaultSettings.yaml from C:/Users/borna/AppData/Local/Programs/MiKTeX/scripts/latexindent/defaultSettings.yaml
-INFO:  YAML settings read: indentconfig.yaml or .indentconfig.yaml
-       Home directory is C:\Users\borna (didn't find either indentconfig.yaml or .indentconfig.yaml)
-       To specify user settings you would put indentconfig.yaml here: C:\Users\borna/indentconfig.yaml
-       Alternatively, you can use the hidden file .indentconfig.yaml as: C:\Users\borna/.indentconfig.yaml
+INFO:  YAML reading settings
+       Home directory is C:\Users\borna
+       latexindent.pl didn't find indentconfig.yaml or .indentconfig.yaml
+       see all possible locations: https://latexindentpl.readthedocs.io/en/latest/sec-appendices.html#indentconfig-options)
 INFO:  Phase 1: searching for objects
 INFO:  Phase 2: finding surrounding indentation
 INFO:  Phase 3: indenting objects

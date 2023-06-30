@@ -3,10 +3,13 @@
 \usepackage{wrapfig}
 \usepackage{capt-of}
 \usepackage{multicol}
-\title{آزمایشگاه ساختار کامپیوتر و میکروپروسسور}
+\usepackage{threeparttable} % Required for the threeparttable environment
+\usepackage{booktabs} % Required for the \toprule, \midrule, and \bottomrule commands
+\usepackage{multirow} % Required for the \multirow command
+\title{ساختار کامپیوتر و میکروپروسسور}
 \prof{دکتر باقری شورکی}
-\subtitle{آشنایی با منابع وقفه 8051}
-\subject{ گزارش آزمایش هشتم}
+\subtitle{طراحی یک میکروپروفسور}
+\subject{پروژه ترم}
 \department{مهندسی برق}
 \info{
     \begin{tabular}{rl}
@@ -17,116 +20,130 @@
 \usepackage{xepersian}
 \settextfont{Yas}
 
-\newcommand*{\question}[1]{
-	\vspace*{-1em}
-	\begin{figure}[h]
-		\centering
-		\includegraphics[width=0.95\linewidth]{question/#1}
-	\end{figure}
-}
-
 \begin{document}
 \maketitlepage
 \maketitlestart
 
-\section{پرسش اول}
+\section{تعریف پروژه}
 
-هدف از این آزمایش بررسی نحوه ی ارتباط سریال آسنکرون (UART (توسط
-میکروکنترلر 8051 است. از پروتکل UART برای ارتباط سریال بین دو دستگاه استفاده می
-شود، به این صورت که فرستنده دیتا را به صورت موازی می گیرد سپس آن را سریال می
-کند و از طریق پورت Tx خود دیتای سریال شده را به گیرنده می فرستد. گیرنده دیتای
-سریال شده را از پورت Rx دریافت می کند و بعد از اتمام دریافت آن را موازی می کند .
-دیتاها از طریق UART به صورت بسته منتقل می شوند یعنی اینکه ابتدا یک بیت برای شروع
-فرستاده می شود، سپس تعدادی بیت به عنوان دیتا و سپس یک یا دو بیت نشان دهنده ی
-پایان بسته فرستاده می شود. برای مثال اگر بیت شروع را به صورت قرار داد صفر بگیریم
-تا زمانی که دیتایی نمی فرستیم بیت یک ارسال می شود ولی به محض اینکه بیت صفر ارسال
-شود گیرنده متوجه می شود که مثال 8 بیت بعدی دیتا هستند. با توجه به آسنکرون بودن
-ارتباط )نیاز به فرستادن کالک همراه با دیتا نمی باشد( باید هر دو دستگاه در یک سرعت
-کار کنند که به آن baudrate گفته می شود. در مورد baudrate بیشتر تحقیق کنید، تفاوت
-آن با (bitrate (چیست؟ 
+به دنبال طراحی دستگاهی هستیم که به طور خلاصه، شبیه ساز یک
+پردازنده، داخل یک پردازنده، است. چنین دستگاهی وظیفه دارد تا
+به صورت \lr{Real-time} \textbf{برنامه نویسی} شود. و همینطور در
+اتمام برنامه، برنامه نوشته شده را اجرا نیز کند، بدین صورت که داخل
+پردازش خود، باید مراحلی که یک پردازنده طی میکند اعم از
+\lr{Fetch, Decode, Execute} را داخل خود شبیه سازی کند، ولی این
+کار باید کاملا نرم افزاری باشد یعنی در عمل سخت افزار یک پردازنده را
+به صورت نرم افزاری باید شبیه سازی کنیم.
 
-\subsection{\lr{bitrate-baudrate}}
+طراحی چنین ماشینی در عمل انجام شدنی است زیرا تمامی مراحل طی شده
+اعم از اجرا کد و نوشته شدن کد، یک مسئله تشخیص پذیر است و میتوان آن را
+به صورت یک \lr{Finite State Machine} پیاده سازی کرد.
 
-حالا، درباره تفاوت بین نرخ بیت و نرخ بود صحبت کنیم:
+\subsection{توصیف عملکرد}
 
-\begin{itemize}
-	\item \textbf{bitrate : } نرخ بیت به تعداد بیت‌های ارسالی در واحد زمان اشاره دارد. این نرخ نشان‌دهنده سرعت ارسال داده در یک کانال ارتباطی است و به بیت در ثانیه (bps) اندازه‌گیری می‌شود. به عنوان مثال، نرخ بیت ۹۶۰۰ bps به این معنی است که ۹۶۰۰ بیت از داده‌ها در یک ثانیه ارسال یا دریافت می‌شوند.
-	\item \textbf{baudrate : } به تعداد تغییرات سیگنال در ثانیه در یک کانال ارتباطی اشاره دارد. این نرخ تعداد تغییرات نمادها (مودولاسیون یا رویدادهای سیگنال) را نشان می‌دهد که در هر ثانیه رخ می‌دهد و به بودها یا نمادها در ثانیه (bauds) اندازه‌گیری می‌شود.
-\end{itemize}
+\textbf{فرایند برنامه نویسی : }
+این فرایند در واقع فقط نیاز دارد تا در آدرس های حافظه دلخواه، داده دلخواه توسط کاربر وارد
+و ذخیره شود، این اطلاعات میتوانند هم به صورت \lr{OPCODE} و هم به صورت \lr{OPERAND} باشند،
+برای پردازنده ما تفاوتی وجود ندارد.
 
-در استاندارد RS-232، به طور معمول هر نماد نشان‌دهنده یک بیت داده است. بنابراین، باود ریت اغلب به طور معادل با نرخ بیت استفاده می‌شود. با این حال، در برخی از روش‌های مودولاسیون که چندین بیت در یک نماد رمزگذاری می‌شوند، نرخ بود و نرخ بیت ممکن است متفاوت باشند.
+روند برنامه نوشتن به شکل زیر است.
 
-
-\begin{figure}[h!]
-	\centering
-	\includegraphics[height=5.5cm]{result/Bitrateequalbaudrate.png}
-\end{figure}
-
-
-پورت سریال ،8051 duplex Full می باشد، به این معنی که همزمان هم میتوان دیتا
-فرستاد و هم میتوان دریافت کرد. دو پین جداگانه TXD و RXD برای این منظور وجود
-دارد.
-) TXD پین 3.1p می باشد و RXD پین 3.0p می باشد( . رجیستر مخصوص ارتباط سریال
-SBUF می باشد که با استفاده از MOV می توان دیتا را بر روی آن قرار داد یا از آن خواند .
+\begin{enumerate}
+	\item دکمه \lr{ORG} زده میشود.
+	\item یک عدد 2 رقمی به عنوان آدرس وارد میشود.
+	\item دکمه \lr{EXE} برای تایید زده میشود.
+	\item در این آدرس عددی 2 رقمی به عنوان \lr{OPCODE} یا \lr{OPERAND} قرار داده میشود.
+	\item دکمه \lr{EXE} برای تایید زده میشود.
+	\item با کلید های + یا - و یا دوباره با ORG به آدرس جدید میرویم.
+\end{enumerate}
 
 \clearpage
 
-\subsection{قسمت الف}
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.9\linewidth]{result/schematics.png}
+	\caption{شماتیک طرح}
+\end{figure}
 
- برنامه ای بنویسید که عدد 42H را به طور مداوم به خروجی ارسال نماید. سیگنال
-خروجی را بر روی اسیلوسکوپ مشاهده نمایید. بر اساس اندازه گیری زمان پالس ها،
-فرکانس کالک سیستم و baudrate را به دست آورید.)از مود 0 استفاده کنید)
+\section{چالش ها}
 
 
-\begin{qsolve}[]
-	کد زیر را در نظر بگیرید.
-	\begin{latin}
-		\begin{verbatim}
-			ORG 0000H            ; Set the origin address of the program
-			
-			START:              
-				MOV TMOD, #00H    ; Configure Timer 0 and Timer 1 in 13-bit mode
-				MOV TH1, #0F0H    ; Set the baud rate for serial communication
-				MOV IE, #88H      ; Enable Timer 1 and Serial Port interrupts
-				SETB TR1          ; Start Timer 1
-				
-			MAIN:               ; Main program loop
-				MOV A, #4        ; Load the value 4 into the accumulator
-				CALL SEND        ; Call the SEND subroutine to send the value
-				MOV A, #2        ; Load the value 2 into the accumulator
-				CALL SEND        ; Call the SEND subroutine again to send the new value
-				JMP MAIN         ; Jump back to the beginning of the main loop
-				
-			SEND:               ; Subroutine for sending data via the serial port
-				MOV SCON, #00H   ; Configure the serial port in mode 0
-				MOV SBUF, A      ; Move the value in the accumulator to the serial data buffer
-			WAIT:               ; Loop to wait for transmission completion
-				JNB TI, WAIT     ; Jump to WAIT if the transmit interrupt flag is not set
-				CLR TI           ; Clear the transmit interrupt flag
-				RET              ; Return from the subroutine
-		\end{verbatim}
-	\end{latin}
+\begin{table}[ht]
+	\centering
+	\begin{threeparttable}
+		\caption{آدرس‌ها}
+		\label{tbl:addresses}
 
-	 با این کد، با استفاده از تایمر برای زمان بندی و مود 0 ارتباط سریال، عدد هکس \texttt{H42} را 
-	 ارسال میکنیم.
+		\begin{tabular}{lcr}
+			\toprule
+			\multicolumn{1}{c}{\textbf{حالت کدنویسی}} & \multicolumn{1}{c}{\textbf{آدرس‌ها}} & \multicolumn{1}{c}{\textbf{آدرس‌ها}} \\
+			\midrule
+			\multirow{4}{*}{\textbf{در حالت کدنویسی}} &
+			\lr{R0}                                   & وضعیت FSM                                                                 \\
+			                                          & \lr{R1}                             & ورودی                               \\
+			                                          & \lr{R2}                             & داده ورودی                          \\
+			                                          & \lr{R3}                             & آدرس ورودی                          \\
+			\midrule
+			\multirow{4}{*}{\textbf{در حالت اجرا}}    &
+			\lr{R6}                                   & آدرس شروع                                                                 \\
+			                                          & \lr{R1}                             & PC (شمارنده برنامه)                 \\
+			                                          & \lr{R3}                             & پشته                                \\
+			                                          & \lr{R4}                             & IR (ثبت دستور)                      \\
+			\bottomrule
+		\end{tabular}
 
-	 \begin{center}
-		\includegraphics[width=0.48\linewidth]{result/p1_proteus.png}
-		\includegraphics[width=0.48\linewidth]{result/p1_res.png}
-		\captionof{figure}{نتیجه شبیه سازی}
-	 \end{center}
+		\begin{tablenotes}
+			\item[] منبع: ایجاد توسط نویسنده.
+		\end{tablenotes}
 
-	 برای محاسبه \texttt{baud-rate} از رابطه زیر استفاده میکنیم.
+	\end{threeparttable}
+\end{table}
 
-	 \begin{latin}
-		\begin{eqnarray*}
-			\text{baud-rate}&=&\text{clock freq.}\times\text{clock divider}
-			\times\text{serial divider}\times\text{TH1 rate}\\
-			&=& 
-			\frac{11.0592\text{MHz}}{12\times32\times(255-TH_1+1)}=9600 \frac{Bits}{Sec}
-		\end{eqnarray*}
-	\end{latin}
-\end{qsolve}
+\clearpage
 
+\section{تست کاربر}
+
+با استفاده از کد زیر، کار گفته شده را انجام میدهیم.
+\begin{latin}
+	\begin{verbatim}
+		MOV R2, #n   ; Set n to the desired value
+		MOV R0, #m   ; Set R1 to the starting address m
+		MOV R5, #1   ; Initialize R2 to hold the current number
+		LOOP:
+		MOV A, R5
+		MOV @R0, A   ; Write the current number to the memory location pointed by R1
+		
+		INC R0       ; Increment the memory address
+		INC R5       ; Increment the current number
+		
+		; Decrement n and repeat the loop if not zero
+		DEC R2
+		MOV A, R2    
+		JNZ LOOP
+	\end{verbatim}
+\end{latin}
+
+حال فقط کافیست تا که کد بالا را روی میکروپروفسور خود قرار دهیم.
+
+\vfil 
+
+\begin{conclusion}
+	در آخر ما موفق به ساخت چنین دستگاهی شدیم، بدین صورت که حال میکروپروفسور ای 
+	داریم که هر کد اسمبلی ای که به آن دهیم را میتواند مانند یک پروسسور واقعی ( با یک سری محدودیت بیشتر )
+	به صورت \lr{Real-time} اجرا کند و برنامه ریزی شود.
+
+	چالش های زیادی در این پیاده سازی داشتیم، اعم از 
+	کد کردن ورودی از صفحه کلید به اپراتور های داخل میکروپروفسور، 
+	ذخیره درست اطلاعات، پیاده سازی برنامه ریزی میکروپروفسور به صورت نرم افزاری و با صفحه کلید، توصیف 
+	برنامه نویسی به صورت یک FSM, پیاده سازی و آپدیت مناسب این FSM، 
+	و در نهایت چالش کمتری ولی چالش برای شبیه سازی سیکل اجرای برنامه در داخل پروسسور.
+
+	این قسمت آخر در واقع محدودیت اصلی ما را ایجاد کرده زیرا بعضی از رجیستر ها 
+	صرف رجیستر های داخلی این پروسسور نرم افزاری میشوند، همچنین این پروسسور نرم افزاری 
+	دیگر قابلیت تعامل با دنیای خارجی به صورت I/O را ندارد.
+
+	در نهایت با استفاده از حداقل رجیستر های پروسسور، و پیاده سازی مناسب FSM توانستیم 
+	سیکل های برنامه نویسی و سیکل اجرا را به صورت نرم افزاری شبیه سازی کنیم و یک 
+	میکروپروفسور بسازیم.
+\end{conclusion}
 \end{document}
-

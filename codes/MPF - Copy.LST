@@ -1,4 +1,4 @@
-8051 Assembler           Version 1.00   06/29/123 22:28:21    Page 1
+8051 Assembler           Version 1.00   06/30/123 13:34:36    Page 1
 C:\Users\borna\OneDrive\Documents\uni-borna\computer structure\project\codes\MPF - Copy.a51
 
 
@@ -9,13 +9,13 @@ C:\Users\borna\OneDrive\Documents\uni-borna\computer structure\project\codes\MPF
     4 0000              ; addresses
     5 0000              ;====================================================================
     6 0000              ; in coding mode
-    7 0000              ; P0 is the State of the FSM
-    8 0000              ; P1 is the Input
-    9 0000              ; P2 is the input data
-   10 0000              ; P3 is the input address
+    7 0000              ; R0 is the State of the FSM
+    8 0000              ; R1 is the Input
+    9 0000              ; R2 is the input data
+   10 0000              ; R3 is the input address
    11 0000              ;====================================================================
    12 0000              ; in execution mode
-   13 0000              ; P6 is the beggining address
+   13 0000              ; R6 is the beginning address
    14 0000              ; R1 is the PC
    15 0000              ; R3 is the stack
    16 0000              ; R4 is the IR
@@ -60,13 +60,13 @@ C:\Users\borna\OneDrive\Documents\uni-borna\computer structure\project\codes\MPF
       0D1D C6 C7
    48 0D1F              
    49 0D1F              
-8051 Assembler           Version 1.00   06/29/123 22:28:21    Page 2
+8051 Assembler           Version 1.00   06/30/123 13:34:36    Page 2
 C:\Users\borna\OneDrive\Documents\uni-borna\computer structure\project\codes\MPF - Copy.a51
 
 
 
    50 0000              ORG 0000H
-   51 0000 020665           JMP MAIN
+   51 0000 02067E           JMP MAIN
    52 0003              
    53 0003              ; ISR
    54 0003              ORG 0003H
@@ -76,20 +76,20 @@ C:\Users\borna\OneDrive\Documents\uni-borna\computer structure\project\codes\MPF
    58 0009 91FF             ACALL KEY_INPUT             ; updates R1
    59 000B B148             ACALL UPDATE_STATE_FLAGS    ; update R0 which is the state of the FSM, also save input data
    60 000D                  ; visualization
-   61 000D D162             ACALL SHOW_ON_SEGMENT
+   61 000D D17B             ACALL SHOW_ON_SEGMENT
    62 000F                  ; check if we should execute
    63 000F 30C002           JNB EXE_FLAG, ISR_NON_EXE
-   64 0012 D198             ACALL RUN_EXE
+   64 0012 D1AE             ACALL RUN_EXE
    65 0014                  ISR_NON_EXE:
    66 0014                  ; check if wrong key was pressed
    67 0014 30C202           JNB WRONG_FLAG, ISR_NON_WRONG
-   68 0017 D18A             ACALL WRONG_PRESS
+   68 0017 D1A0             ACALL WRONG_PRESS
    69 0019                  ISR_NON_WRONG:
    70 0019                  ; check if code should be run
    71 0019 30C103           JNB END_FLAG, ISR_NON_END
-   72 001C 0206A5           JMP RUN_CODE ; go to execution
+   72 001C 0206BB           JMP RUN_CODE ; go to execution
    73 001F                  ISR_NON_END:
-   74 001F                  ; reset and return from interrupt
+   74 001F                  ; reset and return from interrupt   
    75 001F D2AF             SETB EA             ; Enable interrupt individually
    76 0021 D2A8             SETB EX0            ; Enable external interrupt0
    77 0023 D2B1             SETB P3.1           ; Enable interrupt
@@ -122,7 +122,7 @@ C:\Users\borna\OneDrive\Documents\uni-borna\computer structure\project\codes\MPF
   104 051D B4FF03               CJNE A, #0FFH, ROW2
   105 0520 7D00                 MOV R5, #000H
   106 0522 22                   RET
-8051 Assembler           Version 1.00   06/29/123 22:28:21    Page 3
+8051 Assembler           Version 1.00   06/30/123 13:34:36    Page 3
 C:\Users\borna\OneDrive\Documents\uni-borna\computer structure\project\codes\MPF - Copy.a51
 
 
@@ -162,7 +162,7 @@ C:\Users\borna\OneDrive\Documents\uni-borna\computer structure\project\codes\MPF
   139 054B 54F0             ANL A, #0F0H
   140 054D B4C005           CJNE A, #0C0H, NON_SPECIAL_FUNCTION
   141 0550 E5FF             MOV A, 0FFH
-  142 0552 D12E             ACALL FUNCTION_CALL
+  142 0552 D147             ACALL FUNCTION_CALL
   143 0554 22               RET
   144 0555                  NON_SPECIAL_FUNCTION:
   145 0555                  ; check if input is numeric
@@ -184,7 +184,7 @@ C:\Users\borna\OneDrive\Documents\uni-borna\computer structure\project\codes\MPF
   161 0570 22               RET
   162 0571                  ; Perform the switch-case
   163 0571                  GENERAL_KEY:
-8051 Assembler           Version 1.00   06/29/123 22:28:21    Page 4
+8051 Assembler           Version 1.00   06/30/123 13:34:36    Page 4
 C:\Users\borna\OneDrive\Documents\uni-borna\computer structure\project\codes\MPF - Copy.a51
 
 
@@ -193,282 +193,500 @@ C:\Users\borna\OneDrive\Documents\uni-borna\computer structure\project\codes\MPF
   165 0574                          ORG_CLICK_0:
   166 0574 B91005                       CJNE R1, #ORG_KEY, WRONG_KEY_0
   167 0577 7801                         MOV R0, #001H    ; update state
-  168 0579 02061D                       JMP DEFAULT_CASE
+  168 0579 02062D                       JMP DEFAULT_CASE
   169 057C                          WRONG_KEY_0:
-  170 057C 02061B                       JMP WRONG_KEY
+  170 057C 02062B                       JMP WRONG_KEY
   171 057F B8010D               CASE_1: CJNE R0, #01H , CASE_2
   172 0582                          NUMBER_KEY_1:
   173 0582 30D507                       JNB NUMBER_INPUT_FLAG, NON_NUMBER_KEY_1
   174 0585 7802                         MOV R0, #002H
-  175 0587 D120                         ACALL UPDATE_ADDRESS_INPUT
-  176 0589 02061D                       JMP DEFAULT_CASE
+  175 0587 D139                         ACALL UPDATE_ADDRESS_INPUT
+  176 0589 02062D                       JMP DEFAULT_CASE
   177 058C                          NON_NUMBER_KEY_1:
-  178 058C 02061B                       JMP WRONG_KEY
+  178 058C 02062B                       JMP WRONG_KEY
   179 058F B8020D               CASE_2: CJNE R0, #02H , CASE_3
   180 0592                          NUMBER_KEY_2:
   181 0592 30D507                       JNB NUMBER_INPUT_FLAG, NON_NUMBER_KEY_2
   182 0595 7803                         MOV R0, #003H
-  183 0597 D120                         ACALL UPDATE_ADDRESS_INPUT
-  184 0599 02061D                       JMP DEFAULT_CASE
+  183 0597 D139                         ACALL UPDATE_ADDRESS_INPUT
+  184 0599 02062D                       JMP DEFAULT_CASE
   185 059C                          NON_NUMBER_KEY_2:
-  186 059C 02061B                       JMP WRONG_KEY
-  187 059F B80317               CASE_3: CJNE R0, #03H , CASE_4
+  186 059C 02062B                       JMP WRONG_KEY
+  187 059F B80319               CASE_3: CJNE R0, #03H , CASE_4
   188 05A2                          EXE_CLICK_3:
-  189 05A2 B91309                       CJNE R1, #EXECUTE, WRONG_KEY_3
+  189 05A2 B9130B                       CJNE R1, #EXECUTE, WRONG_KEY_3
   190 05A5 7804                         MOV R0, #004H
   191 05A7                              ; beginning value of PC
   192 05A7 EB                           MOV A , R3
   193 05A8 FE                           MOV R6, A
   194 05A9 D2C0                         SETB EXE_FLAG 
-  195 05AB 02061D                       JMP DEFAULT_CASE
-  196 05AE                          WRONG_KEY_3:
-  197 05AE                              NUMBER_KEY_3: 
-  198 05AE 30D505                           JNB NUMBER_INPUT_FLAG, NON_NUMBER_KEY_3
-  199 05B1 D120                             ACALL UPDATE_ADDRESS_INPUT
-  200 05B3 02061D                           JMP DEFAULT_CASE
-  201 05B6                              NON_NUMBER_KEY_3:
-  202 05B6 02061B                           JMP WRONG_KEY
-  203 05B9 B8040D               CASE_4: CJNE R0, #04H , CASE_5
-  204 05BC                          NUMBER_KEY_4:
-  205 05BC 30D507                       JNB NUMBER_INPUT_FLAG, NON_NUMBER_KEY_4
-  206 05BF 7805                         MOV R0, #005H
-  207 05C1 D127                         ACALL UPDATE_DATA_INPUT
-  208 05C3 02061D                       JMP DEFAULT_CASE
-  209 05C6                          NON_NUMBER_KEY_4:
-  210 05C6 02061B                       JMP WRONG_KEY
-  211 05C9 B8050D               CASE_5: CJNE R0, #05H , CASE_6
-  212 05CC                          NUMBER_KEY_5:
-  213 05CC 30D5F7                       JNB NUMBER_INPUT_FLAG, NON_NUMBER_KEY_4
-  214 05CF 7806                         MOV R0, #006H
-  215 05D1 D127                         ACALL UPDATE_DATA_INPUT
-  216 05D3 02061D                       JMP DEFAULT_CASE
-  217 05D6                          NON_NUMBER_KEY_5:
-  218 05D6 02061B                       JMP WRONG_KEY
-  219 05D9 B80615               CASE_6: CJNE R0, #06H , CASE_7
-  220 05DC                          EXE_CLICK_6:
-8051 Assembler           Version 1.00   06/29/123 22:28:21    Page 5
+  195 05AB D130                         ACALL RESET_DATA_REG
+  196 05AD 02062D                       JMP DEFAULT_CASE
+  197 05B0                          WRONG_KEY_3:
+  198 05B0                              NUMBER_KEY_3: 
+  199 05B0 30D505                           JNB NUMBER_INPUT_FLAG, NON_NUMBER_KEY_3
+  200 05B3 D139                             ACALL UPDATE_ADDRESS_INPUT
+  201 05B5 02062D                           JMP DEFAULT_CASE
+  202 05B8                              NON_NUMBER_KEY_3:
+  203 05B8 02062B                           JMP WRONG_KEY
+  204 05BB B8041F               CASE_4: CJNE R0, #04H , CASE_5
+  205 05BE                          NUMBER_KEY_4:
+  206 05BE 30D507                       JNB NUMBER_INPUT_FLAG, ADR_PLUS_CLICK_4
+  207 05C1 7805                         MOV R0, #005H
+  208 05C3 D140                         ACALL UPDATE_DATA_INPUT
+  209 05C5 02062D                       JMP DEFAULT_CASE
+  210 05C8                          ADR_PLUS_CLICK_4:
+  211 05C8 B91106                       CJNE R1, #ADR_PLUS, ADR_MINUS_CLICK_4
+  212 05CB 0B                           INC R3
+  213 05CC D130                         ACALL RESET_DATA_REG
+  214 05CE 02062D                       JMP DEFAULT_CASE
+  215 05D1                          ADR_MINUS_CLICK_4:
+  216 05D1 B91206                       CJNE R1, #ADR_MINUS, WRONG_KEY_4
+  217 05D4 1B                           DEC R3
+  218 05D5 D130                         ACALL RESET_DATA_REG
+  219 05D7 02062D                       JMP DEFAULT_CASE
+  220 05DA                          WRONG_KEY_4:
+8051 Assembler           Version 1.00   06/30/123 13:34:36    Page 5
 C:\Users\borna\OneDrive\Documents\uni-borna\computer structure\project\codes\MPF - Copy.a51
 
 
 
-  221 05DC B91307                       CJNE R1, #EXECUTE, WRONG_KEY_6
-  222 05DF 7807                         MOV R0, #007H
-  223 05E1 D2C0                         SETB EXE_FLAG
-  224 05E3 02061D                       JMP DEFAULT_CASE
-  225 05E6                          WRONG_KEY_6:
-  226 05E6                              NUMBER_KEY_6: 
-  227 05E6 30D505                           JNB NUMBER_INPUT_FLAG, NON_NUMBER_KEY_6
-  228 05E9 D127                             ACALL UPDATE_DATA_INPUT
-  229 05EB 02061D                           JMP DEFAULT_CASE
-  230 05EE                              NON_NUMBER_KEY_6:
-  231 05EE 02061B                           JMP WRONG_KEY
-  232 05F1 B80729               CASE_7: CJNE R0, #07H , DEFAULT_CASE
-  233 05F4                          ORG_CLICK_7:
-  234 05F4 B91007                       CJNE R1, #ORG_KEY, ADR_PLUS_CLICK_7
-  235 05F7 7801                         MOV R0, #001H
-  236 05F9 7A00                         MOV R2, #000H ; reset data register
-  237 05FB 02061D                       JMP DEFAULT_CASE
-  238 05FE                          ADR_PLUS_CLICK_7:
-  239 05FE B9110A                       CJNE R1, #ADR_PLUS, ADR_MINUS_CLICK_7
-  240 0601 7804                         MOV R0, #004H
-  241 0603 7A00                         MOV R2, #000H ; reset data register
-  242 0605 EB                           MOV A, R3
-  243 0606 04                           INC A
-  244 0607 FB                           MOV R3, A
-  245 0608 02061D                       JMP DEFAULT_CASE
-  246 060B                          ADR_MINUS_CLICK_7:
-  247 060B B9120A                       CJNE R1, #ADR_MINUS, WRONG_KEY_7
-  248 060E 7804                         MOV R0, #004H
-  249 0610 7A00                         MOV R2, #000H ; reset data register
-  250 0612 EB                           MOV A, R3
-  251 0613 14                           DEC A
-  252 0614 FB                           MOV R3, A
-  253 0615 02061D                       JMP DEFAULT_CASE
-  254 0618                          WRONG_KEY_7:
-  255 0618 02061B                       JMP WRONG_KEY
-  256 061B                  WRONG_KEY:
-  257 061B D2C2                 SETB WRONG_FLAG
-  258 061D                  DEFAULT_CASE:
-  259 061D D158                 ACALL SET_DATA_ON_SEGMENT
-  260 061F 22                   RET
-  261 0620              
-  262 0620              UPDATE_ADDRESS_INPUT:
-  263 0620 EB               MOV A, R3 ; load current input address
-  264 0621 C4               SWAP A
-  265 0622 54F0             ANL A, #0F0H
-  266 0624 49               ORL A, R1 
-  267 0625 FB               MOV R3, A
-  268 0626 22               RET
-  269 0627              
-  270 0627              UPDATE_DATA_INPUT:
-  271 0627 EA               MOV A, R2 ; load current input data
-  272 0628 C4               SWAP A
-  273 0629 54F0             ANL A, #0F0H
-  274 062B 49               ORL A, R1 
-  275 062C FA               MOV R2, A
-  276 062D 22               RET
-  277 062E              
-8051 Assembler           Version 1.00   06/29/123 22:28:21    Page 6
+  221 05DA 02062B                       JMP WRONG_KEY
+  222 05DD B8050D               CASE_5: CJNE R0, #05H , CASE_6
+  223 05E0                          NUMBER_KEY_5:
+  224 05E0 30D507                       JNB NUMBER_INPUT_FLAG, NON_NUMBER_KEY_5
+  225 05E3 7806                         MOV R0, #006H
+  226 05E5 D140                         ACALL UPDATE_DATA_INPUT
+  227 05E7 02062D                       JMP DEFAULT_CASE
+  228 05EA                          NON_NUMBER_KEY_5:
+  229 05EA 02062B                       JMP WRONG_KEY
+  230 05ED B80615               CASE_6: CJNE R0, #06H , CASE_7
+  231 05F0                          EXE_CLICK_6:
+  232 05F0 B91307                       CJNE R1, #EXECUTE, WRONG_KEY_6
+  233 05F3 7807                         MOV R0, #007H
+  234 05F5 D2C0                         SETB EXE_FLAG
+  235 05F7 02062D                       JMP DEFAULT_CASE
+  236 05FA                          WRONG_KEY_6:
+  237 05FA                              NUMBER_KEY_6: 
+  238 05FA 30D505                           JNB NUMBER_INPUT_FLAG, NON_NUMBER_KEY_6
+  239 05FD D140                             ACALL UPDATE_DATA_INPUT
+  240 05FF 02062D                           JMP DEFAULT_CASE
+  241 0602                              NON_NUMBER_KEY_6:
+  242 0602 02062B                           JMP WRONG_KEY
+  243 0605 B80725               CASE_7: CJNE R0, #07H , DEFAULT_CASE
+  244 0608                          ORG_CLICK_7:
+  245 0608 B91007                       CJNE R1, #ORG_KEY, ADR_PLUS_CLICK_7
+  246 060B 7801                         MOV R0, #001H
+  247 060D D130                         ACALL RESET_DATA_REG
+  248 060F 02062D                       JMP DEFAULT_CASE
+  249 0612                          ADR_PLUS_CLICK_7:
+  250 0612 B91108                       CJNE R1, #ADR_PLUS, ADR_MINUS_CLICK_7
+  251 0615 7804                         MOV R0, #004H
+  252 0617 0B                           INC R3
+  253 0618 D130                         ACALL RESET_DATA_REG
+  254 061A 02062D                       JMP DEFAULT_CASE
+  255 061D                          ADR_MINUS_CLICK_7:
+  256 061D B91208                       CJNE R1, #ADR_MINUS, WRONG_KEY_7
+  257 0620 7804                         MOV R0, #004H
+  258 0622 1B                           DEC R3
+  259 0623 D130                         ACALL RESET_DATA_REG
+  260 0625 02062D                       JMP DEFAULT_CASE
+  261 0628                          WRONG_KEY_7:
+  262 0628 02062B                       JMP WRONG_KEY
+  263 062B                  WRONG_KEY:
+  264 062B D2C2                 SETB WRONG_FLAG
+  265 062D                  DEFAULT_CASE:
+  266 062D D171                 ACALL SET_DATA_ON_SEGMENT
+  267 062F 22                   RET
+  268 0630              
+  269 0630              RESET_DATA_REG:
+  270 0630 88FF             MOV 0FFH, R0
+  271 0632 EB               MOV A, R3
+  272 0633 F8               MOV R0, A
+  273 0634 E6               MOV A , @R0 
+  274 0635 FA               MOV R2, A
+  275 0636 A8FF             MOV R0, 0FFH
+  276 0638 22               RET
+  277 0639              
+8051 Assembler           Version 1.00   06/30/123 13:34:36    Page 6
 C:\Users\borna\OneDrive\Documents\uni-borna\computer structure\project\codes\MPF - Copy.a51
 
 
 
-  278 062E              FUNCTION_CALL:
-  279 062E B9C001           F1_CALL: CJNE R1, #F1, F2_CALL
-  280 0631 22               RET ; do nothing, it should show the accumilator
-  281 0632 B9C102           F2_CALL: CJNE R1, #F2, F3_CALL
-  282 0635 E8               MOV A, R0 ; show current state
-  283 0636 22               RET
-  284 0637 B9C202           F3_CALL: CJNE R1, #F3, F4_CALL
-  285 063A EB               MOV A, R3 ; show current adress
-  286 063B 22               RET
-  287 063C B9C302           F4_CALL: CJNE R1, #F4, F5_CALL
-  288 063F EA               MOV A, R2 ; show current data
-  289 0640 22               RET
-  290 0641 B9C402           F5_CALL: CJNE R1, #F5, F6_CALL
-  291 0644 EE               MOV A, R6 ; show code start
-  292 0645 22               RET
-  293 0646 B9C503           F6_CALL: CJNE R1, #F6, F7_CALL
-  294 0649 E5F0             MOV A, B ; show B register
-  295 064B 22               RET
-  296 064C B9C603           F7_CALL: CJNE R1, #F7, F8_CALL
-  297 064F E5CF             MOV A, 0CFH ; show data in specific part of memory
-  298 0651 22               RET
-  299 0652 B9C700           F8_CALL: CJNE R1, #F8, DEFAULT_CALL
-  300 0655                  DEFAULT_CALL:
-  301 0655 D158             ACALL SET_DATA_ON_SEGMENT
-  302 0657 22               RET
-  303 0658              
-  304 0658              SET_DATA_ON_SEGMENT:
-  305 0658 E8               MOV A , R0
-  306 0659 54FC             ANL A, #11111100B
-  307 065B B40002           CJNE A, #0H , SHOW_R2_ON_SEGMENT
-  308 065E EB               MOV A, R3
-  309 065F 22               RET
-  310 0660                  SHOW_R2_ON_SEGMENT:
-  311 0660 EA               MOV A, R2
-  312 0661 22               RET
-  313 0662              
-  314 0662              SHOW_ON_SEGMENT: ; current implementation is very basic
-  315 0662 F590             MOV P1, A
-  316 0664 22               RET
-  317 0665              
-  318 0665              MAIN:
-  319 0665 D16A             ACALL INIT
-  320 0667              LOOP:
-  321 0667 020667           JMP LOOP
-  322 066A              
-  323 066A              INIT:
-  324 066A 758000           MOV P0, #000H   ; define P0 as output
-  325 066D 75A0FF           MOV P2, #0FFH   ; define P2 as input
-  326 0670 759000           MOV P1, #000H   ; define P1 as output
-  327 0673 D288             SETB IT0        ; Falling edge interrupt
-  328 0675 C2AA             CLR EX1         ; Disable external interrupt 1
-  329 0677 7800             MOV R0, #000H   ; initialize R0 which is the state register
-  330 0679 7900             MOV R1, #000H   ; initialize R1 which is the input register
-  331 067B 7A00             MOV R2, #000H   ; initialize R2 which is the current data 
-  332 067D 7B00             MOV R3, #000H   ; initialize R3 which is the current address
-  333 067F C2D5             CLR NUMBER_INPUT_FLAG 
-  334 0681 C2C1             CLR END_FLAG
-8051 Assembler           Version 1.00   06/29/123 22:28:21    Page 7
+  278 0639              UPDATE_ADDRESS_INPUT:
+  279 0639 EB               MOV A, R3 ; load current input address
+  280 063A C4               SWAP A
+  281 063B 54F0             ANL A, #0F0H
+  282 063D 49               ORL A, R1 
+  283 063E FB               MOV R3, A
+  284 063F 22               RET
+  285 0640              
+  286 0640              UPDATE_DATA_INPUT:
+  287 0640 EA               MOV A, R2 ; load current input data
+  288 0641 C4               SWAP A
+  289 0642 54F0             ANL A, #0F0H
+  290 0644 49               ORL A, R1 
+  291 0645 FA               MOV R2, A
+  292 0646 22               RET
+  293 0647              
+  294 0647              FUNCTION_CALL:
+  295 0647 B9C001           F1_CALL: CJNE R1, #F1, F2_CALL
+  296 064A 22               RET ; do nothing, it should show the accumilator
+  297 064B B9C102           F2_CALL: CJNE R1, #F2, F3_CALL
+  298 064E E8               MOV A, R0 ; show current state
+  299 064F 22               RET
+  300 0650 B9C202           F3_CALL: CJNE R1, #F3, F4_CALL
+  301 0653 EB               MOV A, R3 ; show current adress
+  302 0654 22               RET
+  303 0655 B9C302           F4_CALL: CJNE R1, #F4, F5_CALL
+  304 0658 EA               MOV A, R2 ; show current data
+  305 0659 22               RET
+  306 065A B9C402           F5_CALL: CJNE R1, #F5, F6_CALL
+  307 065D EE               MOV A, R6 ; show code start
+  308 065E 22               RET
+  309 065F B9C503           F6_CALL: CJNE R1, #F6, F7_CALL
+  310 0662 E5F0             MOV A, B ; show B register
+  311 0664 22               RET
+  312 0665 B9C603           F7_CALL: CJNE R1, #F7, F8_CALL
+  313 0668 E5CF             MOV A, 0CFH ; show data in specific part of memory
+  314 066A 22               RET
+  315 066B B9C700           F8_CALL: CJNE R1, #F8, DEFAULT_CALL
+  316 066E                  DEFAULT_CALL:
+  317 066E D171             ACALL SET_DATA_ON_SEGMENT
+  318 0670 22               RET
+  319 0671              
+  320 0671              SET_DATA_ON_SEGMENT:
+  321 0671 E8               MOV A , R0
+  322 0672 54FC             ANL A, #11111100B
+  323 0674 B40002           CJNE A, #0H , SHOW_R2_ON_SEGMENT
+  324 0677 EB               MOV A, R3
+  325 0678 22               RET
+  326 0679                  SHOW_R2_ON_SEGMENT:
+  327 0679 EA               MOV A, R2
+  328 067A 22               RET
+  329 067B              
+  330 067B              SHOW_ON_SEGMENT: ; current implementation is very basic
+  331 067B F590             MOV P1, A
+  332 067D 22               RET
+  333 067E              
+  334 067E              MAIN:
+8051 Assembler           Version 1.00   06/30/123 13:34:36    Page 7
 C:\Users\borna\OneDrive\Documents\uni-borna\computer structure\project\codes\MPF - Copy.a51
 
 
 
-  335 0683 C2C0             CLR EXE_FLAG
-  336 0685 D2AF             SETB EA         ; Enable interrupt individually
-  337 0687 D2A8             SETB EX0        ; Enable external interrupt0
-  338 0689 22               RET
-  339 068A              
-  340 068A              WRONG_PRESS: ; make the segments blink
-  341 068A 8580F0           MOV B, P0
-  342 068D 7488             MOV A, #88H
-  343 068F D162             ACALL SHOW_ON_SEGMENT
-  344 0691 D1E0             ACALL DELAY
-  345 0693 E580             MOV A, P0
-  346 0695 D162             ACALL SHOW_ON_SEGMENT
-  347 0697 22               RET
-  348 0698                  
-  349 0698              RUN_EXE:
-  350 0698 B80401           CJNE R0, #004H, UPDATE_MEMORY
-  351 069B 22               RET ; address is already saved in R3, no need for change
-  352 069C                  UPDATE_MEMORY:
-  353 069C 88F0             MOV B, R0 ; temporary memory
-  354 069E EB               MOV A, R3
-  355 069F F8               MOV R0, A
-  356 06A0 EA               MOV A, R2
-  357 06A1 F6               MOV @R0, A
-  358 06A2 A8F0             MOV R0, B
-  359 06A4 22               RET
-  360 06A5              
-  361 06A5              RUN_CODE:
-  362 06A5                  INIT_RUN:
-  363 06A5 EE               MOV A , R6
-  364 06A6 F9               MOV R1, A       ; PC
-  365 06A7                  ; we do not use a MAR since using basic asm we can implement its functionality
-  366 06A7 7C00             MOV R4, #00H    ; IR
-  367 06A9 7B00             MOV R3, #00H    ; STACK
-  368 06AB                  FETCH:
-  369 06AB F5FF             MOV 0FFH, A
-  370 06AD E7               MOV A, @R1
-  371 06AE FC               MOV R4, A ; IR <- @PC
-  372 06AF E5FF             MOV A, 0FFH
-  373 06B1 D1B6             ACALL DECODE_AND_EXECUTE
-  374 06B3 0206AB           JMP FETCH ; will not exit, need to use RST, or write new code
-  375 06B6                  
-  376 06B6              DECODE_AND_EXECUTE:
-  377 06B6 BC0006           NOP_MNEMONIC: CJNE R4, #000H, INC_A_MNEMONIC
-  378 06B9                      EXECUTE_END: 
-  379 06B9 D162                     ACALL SHOW_ON_SEGMENT ; show accumilator on segment
-  380 06BB 020667                   JMP LOOP ; end execution
-  381 06BE 22               RET
-  382 06BF                  
-  383 06BF BC0403           INC_A_MNEMONIC: CJNE R4, #004H, ADD_IMMEDIATE_MNEMONIC
-  384 06C2 04                   INC A ; Increase A
-  385 06C3 09                   INC R1 ; PC=PC+1
-  386 06C4 22               RET
-  387 06C5              
-  388 06C5 BC240A           ADD_IMMEDIATE_MNEMONIC: CJNE R4, #024H, MOV_A_IMMIDIATE_MNEMONIC
-  389 06C8 09                   INC R1 ; PC=PC+1
-  390 06C9 F5FF                 MOV 0FFH, A
-  391 06CB E7                   MOV A, @R1 
-8051 Assembler           Version 1.00   06/29/123 22:28:21    Page 8
+  335 067E 758000           MOV P0, #000H   ; define P0 as output
+  336 0681 75A0FF           MOV P2, #0FFH   ; define P2 as input
+  337 0684 759000           MOV P1, #000H   ; define P1 as output
+  338 0687              START:
+  339 0687 D288             SETB IT0        ; Falling edge interrupt
+  340 0689 C2AA             CLR EX1         ; Disable external interrupt 1
+  341 068B 7800             MOV R0, #000H   ; initialize R0 which is the state register
+  342 068D 7900             MOV R1, #000H   ; initialize R1 which is the input register
+  343 068F 7A00             MOV R2, #000H   ; initialize R2 which is the current data 
+  344 0691 7B00             MOV R3, #000H   ; initialize R3 which is the current address
+  345 0693 C2D5             CLR NUMBER_INPUT_FLAG 
+  346 0695 C2C1             CLR END_FLAG
+  347 0697 C2C0             CLR EXE_FLAG
+  348 0699 D2AF             SETB EA         ; Enable interrupt individually
+  349 069B D2A8             SETB EX0        ; Enable external interrupt0
+  350 069D              LOOP:
+  351 069D 02069D           JMP LOOP
+  352 06A0              
+  353 06A0              WRONG_PRESS: ; make the segments blink
+  354 06A0 8590F0           MOV B, P1 ; save current value showing
+  355 06A3 7488             MOV A, #88H
+  356 06A5 D17B             ACALL SHOW_ON_SEGMENT
+  357 06A7 F1E1             ACALL DELAY
+  358 06A9 E5F0             MOV A, B
+  359 06AB D17B             ACALL SHOW_ON_SEGMENT
+  360 06AD 22               RET
+  361 06AE                  
+  362 06AE              RUN_EXE:
+  363 06AE B80401           CJNE R0, #004H, UPDATE_MEMORY
+  364 06B1 22               RET ; address is already saved in R3, no need for change
+  365 06B2                  UPDATE_MEMORY:
+  366 06B2 88F0             MOV B, R0 ; temporary memory
+  367 06B4 EB               MOV A, R3
+  368 06B5 F8               MOV R0, A
+  369 06B6 EA               MOV A, R2
+  370 06B7 F6               MOV @R0, A
+  371 06B8 A8F0             MOV R0, B
+  372 06BA 22               RET
+  373 06BB              
+  374 06BB              RUN_CODE:
+  375 06BB                  INIT_RUN:
+  376 06BB EE               MOV A , R6
+  377 06BC F9               MOV R1, A       ; PC
+  378 06BD                  ; we do not use a MAR since using basic asm we can implement its functionality
+  379 06BD 7C00             MOV R4, #00H    ; IR
+  380 06BF 7B00             MOV R3, #00H    ; STACK
+  381 06C1                  FETCH:
+  382 06C1 F5FF             MOV 0FFH, A
+  383 06C3 E7               MOV A, @R1
+  384 06C4 FC               MOV R4, A ; IR <- @PC
+  385 06C5                  ; testing purposes
+  386 06C5                  ; ACALL SHOW_ON_SEGMENT
+  387 06C5                  ; ACALL DELAY
+  388 06C5 E5FF             MOV A, 0FFH
+  389 06C7 09               INC R1 ; PC <- PC + 1
+  390 06C8 D1CD             ACALL DECODE_AND_EXECUTE
+  391 06CA 0206C1           JMP FETCH ; will not exit, need to use RST, or write new code
+8051 Assembler           Version 1.00   06/30/123 13:34:36    Page 8
 C:\Users\borna\OneDrive\Documents\uni-borna\computer structure\project\codes\MPF - Copy.a51
 
 
 
-  392 06CC FC                   MOV R4, A ; Move the value in next memory location to R4
-  393 06CD E5FF                 MOV A, 0FFH
-  394 06CF 2C                   ADD A, R4 ; Add A with the value in the next memory location
-  395 06D0 09                   INC R1 ; PC=PC+1
-  396 06D1 22               RET
-  397 06D2              
-  398 06D2 BC7404           MOV_A_IMMIDIATE_MNEMONIC: CJNE R4, #074H, INVALID_OPCODE
-  399 06D5 09                   INC R1 
-  400 06D6 E7                   MOV A, @R1
-  401 06D7 09                   INC R1
-  402 06D8 22               RET
-  403 06D9              
-  404 06D9                  INVALID_OPCODE:
-  405 06D9 7590FF               MOV P1, #0FFH
-  406 06DC 0206DC               ERROR: JMP ERROR
-  407 06DF 22               RET
-  408 06E0              
-  409 06E0              
-  410 06E0              ; delay  generator subroutine
-  411 06E0              DELAY:
-  412 06E0 75FE0A           MOV 0FEH, #00AH ; Following delay will reapeat  31 times
-  413 06E3 758901           WAIT2:MOV TMOD, #001H
-  414 06E6 758A00           MOV TL0, #000H
-  415 06E9 758C00           MOV TH0, #000H
-  416 06EC D28C             SETB TR0
-  417 06EE 308DFD           WAIT1: JNB TF0, WAIT1
-  418 06F1 C28D             CLR TF0
-  419 06F3 C28C             CLR TR0
-  420 06F5 D5FEEB           DJNZ 0FEH, WAIT2
-  421 06F8 22               RET
-  422 06F9                  
-  423 06F9              END
+  392 06CD                  
+  393 06CD              DECODE_AND_EXECUTE:
+  394 06CD BC0006           NOP_MNEMONIC: CJNE R4, #000H, INC_A_MNEMONIC
+  395 06D0                      EXECUTE_END: 
+  396 06D0 D17B                     ACALL SHOW_ON_SEGMENT ; show accumilator on segment
+  397 06D2 020687                   JMP START ; end execution
+  398 06D5 22               RET
+  399 06D6                  
+  400 06D6 BC0402           INC_A_MNEMONIC: CJNE R4, #004H, INC_R0_MNEMONIC
+  401 06D9 04                   INC A ; Increase A
+  402 06DA 22               RET
+  403 06DB                  
+  404 06DB BC0802           INC_R0_MNEMONIC: CJNE R4, #008H, INC_R2_MNEMONIC
+  405 06DE 08                   INC R0 ; Increase R0
+  406 06DF 22               RET
+  407 06E0                  
+  408 06E0 BC0A02           INC_R2_MNEMONIC: CJNE R4, #00AH, INC_R5_MNEMONIC
+  409 06E3 0A                   INC R2 ; Increase R2
+  410 06E4 22               RET
+  411 06E5                  
+  412 06E5 BC0D02           INC_R5_MNEMONIC: CJNE R4, #00DH, INC_R7_MNEMONIC
+  413 06E8 0D                   INC R5 ; Increase R5
+  414 06E9 22               RET
+  415 06EA                  
+  416 06EA BC0F02           INC_R7_MNEMONIC: CJNE R4, #00FH, ACALL_MNEMONIC
+  417 06ED 0F                   INC R7 ; Increase R7
+  418 06EE 22               RET
+  419 06EF                  
+  420 06EF BC110B           ACALL_MNEMONIC: CJNE R4, #011H, DEC_A_MNEMONIC
+  421 06F2 09                   INC R1 ; PC=PC+1
+  422 06F3 F5FF                 MOV 0FFH, A
+  423 06F5 E9                   MOV A, R1
+  424 06F6 FB                   MOV R3, A ; Move next PC value to stack
+  425 06F7 19                   DEC R1
+  426 06F8 E7                   MOV A, @R1 
+  427 06F9 F9                   MOV R1, A ; Move the next address to PC
+  428 06FA E5FF                 MOV A, 0FFH
+  429 06FC 22               RET
+  430 06FD                  
+  431 06FD BC1402           DEC_A_MNEMONIC: CJNE R4, #014H, DEC_R0_MNEMONIC
+  432 0700 14                   DEC A
+  433 0701 22               RET
+  434 0702                  
+  435 0702 BC1802           DEC_R0_MNEMONIC: CJNE R4, #018H, DEC_R2_MNEMONIC
+  436 0705 18                   DEC R0
+  437 0706 22               RET
+  438 0707                  
+  439 0707 BC1A02           DEC_R2_MNEMONIC: CJNE R4, #01AH, DEC_R5_MNEMONIC
+  440 070A 1A                   DEC R2
+  441 070B 22               RET
+  442 070C                  
+  443 070C BC1D02           DEC_R5_MNEMONIC: CJNE R4, #01DH, DEC_R7_MNEMONIC
+  444 070F 1D                   DEC R5
+  445 0710 22               RET
+  446 0711                  
+  447 0711 BC1F02           DEC_R7_MNEMONIC: CJNE R4, #01FH, JB_MNEMONIC
+  448 0714 1F                   DEC R7
+8051 Assembler           Version 1.00   06/30/123 13:34:36    Page 9
+C:\Users\borna\OneDrive\Documents\uni-borna\computer structure\project\codes\MPF - Copy.a51
+
+
+
+  449 0715 22               RET
+  450 0716                  
+  451 0716 BC2001           JB_MNEMONIC: CJNE R4, #020H, RET_MNEMONIC
+  452 0719                      
+  453 0719 22               RET
+  454 071A                  
+  455 071A BC2207           RET_MNEMONIC: CJNE R4, #022H, ADD_IMMEDIATE_MNEMONIC
+  456 071D F5FF                 MOV 0FFH, A
+  457 071F EB                   MOV A, R3
+  458 0720 F9                   MOV R1, A ; Move stack to PC
+  459 0721 E5FF                 MOV A, 0FFH
+  460 0723 22               RET
+  461 0724                  
+  462 0724 BC2409           ADD_IMMEDIATE_MNEMONIC: CJNE R4, #024H, ADD_R0_MNEMONIC
+  463 0727 F5FF                 MOV 0FFH, A
+  464 0729 E7                   MOV A, @R1 
+  465 072A FC                   MOV R4, A ; Move the value in next memory location to R4
+  466 072B E5FF                 MOV A, 0FFH
+  467 072D 2C                   ADD A, R4 ; Add A with the value in the next memory location
+  468 072E 09                   INC R1 ; PC=PC+1
+  469 072F 22               RET
+  470 0730                  
+  471 0730 BC2802           ADD_R0_MNEMONIC: CJNE R4, #028H, ADD_R2_MNEMONIC
+  472 0733 28                   ADD A, R0
+  473 0734 22               RET
+  474 0735                  
+  475 0735 BC2A02           ADD_R2_MNEMONIC: CJNE R4, #02AH, ADD_R5_MNEMONIC
+  476 0738 2A                   ADD A, R2
+  477 0739 22               RET
+  478 073A                  
+  479 073A BC2D02           ADD_R5_MNEMONIC: CJNE R4, #02DH, ADD_R7_MNEMONIC
+  480 073D 2D                   ADD A, R5
+  481 073E 22               RET
+  482 073F                  
+  483 073F BC2F02           ADD_R7_MNEMONIC: CJNE R4, #02FH, ADDC_IMMIDIATE_MNEMONIC
+  484 0742 2F                   ADD A, R7
+  485 0743 22               RET
+  486 0744                  
+  487 0744 BC3409           ADDC_IMMIDIATE_MNEMONIC: CJNE R4, #034H, JZ_MNEMONIC
+  488 0747 F5FF                 MOV 0FFH, A
+  489 0749 E7                   MOV A, @R1 
+  490 074A FC                   MOV R4, A ; Move the value in next memory location to R4
+  491 074B E5FF                 MOV A, 0FFH
+  492 074D 3C                   ADDC A, R4 ; Add A with the value in the next memory location
+  493 074E 09                   INC R1 ; PC=PC+1
+  494 074F 22               RET
+  495 0750                  
+  496 0750 BC600B           JZ_MNEMONIC: CJNE R4, #060H, JNZ_MNEMONIC
+  497 0753 6002                 JZ ZERO_JZ_MNEMONIC
+  498 0755 09                   INC R1
+  499 0756 22                   RET
+  500 0757                      ZERO_JZ_MNEMONIC:
+  501 0757 F5FF                 MOV 0FFH, A
+  502 0759 E7                   MOV A, @R1 
+  503 075A F9                   MOV R1, A
+  504 075B E5FF                 MOV A, 0FFH
+  505 075D 22               RET
+8051 Assembler           Version 1.00   06/30/123 13:34:36    Page 10
+C:\Users\borna\OneDrive\Documents\uni-borna\computer structure\project\codes\MPF - Copy.a51
+
+
+
+  506 075E                  
+  507 075E BC700B           JNZ_MNEMONIC: CJNE R4, #070H, AJMP_MNEMONIC
+  508 0761 7002                 JNZ NZERO_JZ_MNEMONIC
+  509 0763 09                   INC R1
+  510 0764 22                   RET
+  511 0765                      NZERO_JZ_MNEMONIC:
+  512 0765 F5FF                 MOV 0FFH, A
+  513 0767 E7                   MOV A, @R1 
+  514 0768 F9                   MOV R1, A
+  515 0769 E5FF                 MOV A, 0FFH
+  516 076B 22               RET
+  517 076C                  
+  518 076C BC6107           AJMP_MNEMONIC: CJNE R4, #061H, MOV_A_IMMIDIATE_MNEMONIC
+  519 076F F5FF                 MOV 0FFH, A
+  520 0771 E7                   MOV A, @R1 
+  521 0772 F9                   MOV R1, A ; Move the next address to PC
+  522 0773 E5FF                 MOV A, 0FFH
+  523 0775 22               RET
+  524 0776                  
+  525 0776 BC7403           MOV_A_IMMIDIATE_MNEMONIC: CJNE R4, #074H, MOV_R0_IMMIDIATE_MNEMONIC
+  526 0779 E7                   MOV A, @R1
+  527 077A 09                   INC R1
+  528 077B 22               RET
+  529 077C                  
+  530 077C BC7808           MOV_R0_IMMIDIATE_MNEMONIC: CJNE R4, #078H, MOV_R2_IMMIDIATE_MNEMONIC
+  531 077F F5FF                 MOV 0FFH, A
+  532 0781 E7                   MOV A, @R1
+  533 0782 F8                   MOV R0, A
+  534 0783 E5FF                 MOV A, 0FFH
+  535 0785 09                   INC R1
+  536 0786 22               RET
+  537 0787                  
+  538 0787 BC7A08           MOV_R2_IMMIDIATE_MNEMONIC: CJNE R4, #07AH, MOV_R5_IMMIDIATE_MNEMONIC
+  539 078A F5FF                 MOV 0FFH, A
+  540 078C E7                   MOV A, @R1
+  541 078D FA                   MOV R2, A
+  542 078E E5FF                 MOV A, 0FFH
+  543 0790 09                   INC R1
+  544 0791 22               RET
+  545 0792                  
+  546 0792 BC7D08           MOV_R5_IMMIDIATE_MNEMONIC: CJNE R4, #07DH, MOV_R7_IMMIDIATE_MNEMONIC
+  547 0795 F5FF                 MOV 0FFH, A
+  548 0797 E7                   MOV A, @R1
+  549 0798 FD                   MOV R5, A
+  550 0799 E5FF                 MOV A, 0FFH
+  551 079B 09                   INC R1
+  552 079C 22               RET
+  553 079D                  
+  554 079D BC7F08           MOV_R7_IMMIDIATE_MNEMONIC: CJNE R4, #07FH, MOV_A_R0_MNEMONIC
+  555 07A0 F5FF                 MOV 0FFH, A
+  556 07A2 E7                   MOV A, @R1
+  557 07A3 FF                   MOV R7, A
+  558 07A4 E5FF                 MOV A, 0FFH
+  559 07A6 09                   INC R1
+  560 07A7 22               RET
+  561 07A8                  
+  562 07A8 BCE802           MOV_A_R0_MNEMONIC: CJNE R4, #0E8H, MOV_A_R2_MNEMONIC
+8051 Assembler           Version 1.00   06/30/123 13:34:36    Page 11
+C:\Users\borna\OneDrive\Documents\uni-borna\computer structure\project\codes\MPF - Copy.a51
+
+
+
+  563 07AB E8                   MOV A, R0
+  564 07AC 22               RET
+  565 07AD                  
+  566 07AD BCEA02           MOV_A_R2_MNEMONIC: CJNE R4, #0EAH, MOV_A_R5_MNEMONIC
+  567 07B0 EA                   MOV  A, R2
+  568 07B1 22               RET
+  569 07B2                  
+  570 07B2 BCED02           MOV_A_R5_MNEMONIC: CJNE R4, #0EDH, MOV_A_R7_MNEMONIC
+  571 07B5 ED                   MOV A, R5
+  572 07B6 22               RET
+  573 07B7                  
+  574 07B7 BCEF02           MOV_A_R7_MNEMONIC: CJNE R4, #0EFH, CPL_A_MNEMONIC
+  575 07BA EF                   MOV A, R7
+  576 07BB 22               RET
+  577 07BC                  
+  578 07BC BCF402           CPL_A_MNEMONIC: CJNE R4, #0F4H, MOV_addrR1_A_MNEMONIC
+  579 07BF F4                   CPL A
+  580 07C0 22               RET
+  581 07C1              
+  582 07C1 BCF602           MOV_addrR1_A_MNEMONIC: CJNE R4, #0F6H, MOV_R0_A_MNEMONIC
+  583 07C4 F6                   MOV @R0, A
+  584 07C5 22               RET
+  585 07C6                  
+  586 07C6 BCF802           MOV_R0_A_MNEMONIC: CJNE R4, #0F8H, MOV_R2_A_MNEMONIC
+  587 07C9 F8                   MOV R0, A
+  588 07CA 22               RET
+  589 07CB                  
+  590 07CB BCFA02           MOV_R2_A_MNEMONIC: CJNE R4, #0FAH, MOV_R5_A_MNEMONIC
+  591 07CE FA                   MOV R2, A
+  592 07CF 22               RET
+  593 07D0                  
+  594 07D0 BCFD02           MOV_R5_A_MNEMONIC: CJNE R4, #0FDH, MOV_R7_A_MNEMONIC
+  595 07D3 FD                   MOV R5, A
+  596 07D4 22               RET
+  597 07D5                  
+  598 07D5 BCFF02           MOV_R7_A_MNEMONIC: CJNE R4, #0FFH, INVALID_OPCODE
+  599 07D8 FF                   MOV R7, A
+  600 07D9 22               RET
+  601 07DA                  
+  602 07DA                  INVALID_OPCODE:
+  603 07DA 7590FF               MOV P1, #0FFH
+  604 07DD 02069D               JMP LOOP
+  605 07E0 22               RET
+  606 07E1              
+  607 07E1              
+  608 07E1              ; delay  generator subroutine
+  609 07E1              DELAY:
+  610 07E1 75FE0A           MOV 0FEH, #00AH ; Following delay will reapeat  31 times
+  611 07E4 758901           WAIT2:MOV TMOD, #001H
+  612 07E7 758A00           MOV TL0, #000H
+  613 07EA 758C00           MOV TH0, #000H
+  614 07ED D28C             SETB TR0
+  615 07EF 308DFD           WAIT1: JNB TF0, WAIT1
+  616 07F2 C28D             CLR TF0
+  617 07F4 C28C             CLR TR0
+  618 07F6 D5FEEB           DJNZ 0FEH, WAIT2
+  619 07F9 22               RET
+8051 Assembler           Version 1.00   06/30/123 13:34:36    Page 12
+C:\Users\borna\OneDrive\Documents\uni-borna\computer structure\project\codes\MPF - Copy.a51
+
+
+
+  620 07FA                  
+  621 07FA              END
 
 Defined Symbols:
   ADR_MINUS                                 000012  18
@@ -491,88 +709,126 @@ Defined Symbols:
   WRONG_FLAG                                0000C2  194
 
 Defined Labels:
-  ADD_IMMEDIATE_MNEMONIC                    0006C5  1733
-  ADR_MINUS_CLICK_7                         00060B  1547
-  ADR_PLUS_CLICK_7                          0005FE  1534
+  ACALL_MNEMONIC                            0006EF  1775
+  ADD_IMMEDIATE_MNEMONIC                    000724  1828
+  ADD_R0_MNEMONIC                           000730  1840
+  ADD_R2_MNEMONIC                           000735  1845
+  ADD_R5_MNEMONIC                           00073A  1850
+  ADD_R7_MNEMONIC                           00073F  1855
+  ADDC_IMMIDIATE_MNEMONIC                   000744  1860
+  ADR_MINUS_CLICK_4                         0005D1  1489
+  ADR_MINUS_CLICK_7                         00061D  1565
+  ADR_PLUS_CLICK_4                          0005C8  1480
+  ADR_PLUS_CLICK_7                          000612  1554
+  AJMP_MNEMONIC                             00076C  1900
   CASE_0                                    000571  1393
   CASE_1                                    00057F  1407
   CASE_2                                    00058F  1423
   CASE_3                                    00059F  1439
-  CASE_4                                    0005B9  1465
-  CASE_5                                    0005C9  1481
-  CASE_6                                    0005D9  1497
-  CASE_7                                    0005F1  1521
+  CASE_4                                    0005BB  1467
+  CASE_5                                    0005DD  1501
+  CASE_6                                    0005ED  1517
+  CASE_7                                    000605  1541
   COL_ROW_TO_KEY                            00053E  1342
-  DECODE_AND_EXECUTE                        0006B6  1718
-  DEFAULT_CALL                              000655  1621
-  DEFAULT_CASE                              00061D  1565
-  DELAY                                     0006E0  1760
-  ERROR                                     0006DC  1756
+  CPL_A_MNEMONIC                            0007BC  1980
+  DEC_A_MNEMONIC                            0006FD  1789
+  DEC_R0_MNEMONIC                           000702  1794
+  DEC_R2_MNEMONIC                           000707  1799
+  DEC_R5_MNEMONIC                           00070C  1804
+  DEC_R7_MNEMONIC                           000711  1809
+  DECODE_AND_EXECUTE                        0006CD  1741
+  DEFAULT_CALL                              00066E  1646
+  DEFAULT_CASE                              00062D  1581
+  DELAY                                     0007E1  2017
   EXE_CLICK_3                               0005A2  1442
-  EXE_CLICK_6                               0005DC  1500
-  EXECUTE_END                               0006B9  1721
-  F1_CALL                                   00062E  1582
-  F2_CALL                                   000632  1586
-  F3_CALL                                   000637  1591
-  F4_CALL                                   00063C  1596
-  F5_CALL                                   000641  1601
-  F6_CALL                                   000646  1606
-  F7_CALL                                   00064C  1612
-  F8_CALL                                   000652  1618
-  FETCH                                     0006AB  1707
+  EXE_CLICK_6                               0005F0  1520
+  EXECUTE_END                               0006D0  1744
+  F1_CALL                                   000647  1607
+  F2_CALL                                   00064B  1611
+  F3_CALL                                   000650  1616
+  F4_CALL                                   000655  1621
+  F5_CALL                                   00065A  1626
+  F6_CALL                                   00065F  1631
+  F7_CALL                                   000665  1637
+  F8_CALL                                   00066B  1643
+  FETCH                                     0006C1  1729
   FIND_INDEX_LOOP                           000510  1296
-  FUNCTION_CALL                             00062E  1582
+  FUNCTION_CALL                             000647  1607
   GENERAL_KEY                               000571  1393
   GET_COL                                   00050C  1292
   GET_ROW                                   000519  1305
-  INC_A_MNEMONIC                            0006BF  1727
+  INC_A_MNEMONIC                            0006D6  1750
+  INC_R0_MNEMONIC                           0006DB  1755
+  INC_R2_MNEMONIC                           0006E0  1760
+  INC_R5_MNEMONIC                           0006E5  1765
+  INC_R7_MNEMONIC                           0006EA  1770
   INDEX_FOUND                               000518  1304
-  INIT                                      00066A  1642
-  INIT_RUN                                  0006A5  1701
-  INVALID_OPCODE                            0006D9  1753
+  INIT_RUN                                  0006BB  1723
+  INVALID_OPCODE                            0007DA  2010
   ISR_NON_END                               00001F  31
   ISR_NON_EXE                               000014  20
   ISR_NON_WRONG                             000019  25
+  JB_MNEMONIC                               000716  1814
+  JNZ_MNEMONIC                              00075E  1886
+  JZ_MNEMONIC                               000750  1872
   KEY_INPUT                                 0004FF  1279
   KEY_MAP                                   000CFF  3327
-  LOOP                                      000667  1639
-  MAIN                                      000665  1637
-  MOV_A_IMMIDIATE_MNEMONIC                  0006D2  1746
+  LOOP                                      00069D  1693
+  MAIN                                      00067E  1662
+  MOV_A_IMMIDIATE_MNEMONIC                  000776  1910
+  MOV_A_R0_MNEMONIC                         0007A8  1960
+  MOV_A_R2_MNEMONIC                         0007AD  1965
+  MOV_A_R5_MNEMONIC                         0007B2  1970
+  MOV_A_R7_MNEMONIC                         0007B7  1975
+  MOV_addrR1_A_MNEMONIC                     0007C1  1985
+  MOV_R0_A_MNEMONIC                         0007C6  1990
+  MOV_R0_IMMIDIATE_MNEMONIC                 00077C  1916
+  MOV_R2_A_MNEMONIC                         0007CB  1995
+  MOV_R2_IMMIDIATE_MNEMONIC                 000787  1927
+  MOV_R5_A_MNEMONIC                         0007D0  2000
+  MOV_R5_IMMIDIATE_MNEMONIC                 000792  1938
+  MOV_R7_A_MNEMONIC                         0007D5  2005
+  MOV_R7_IMMIDIATE_MNEMONIC                 00079D  1949
   NON_NUMBER_KEY_1                          00058C  1420
   NON_NUMBER_KEY_2                          00059C  1436
-  NON_NUMBER_KEY_3                          0005B6  1462
-  NON_NUMBER_KEY_4                          0005C6  1478
-  NON_NUMBER_KEY_5                          0005D6  1494
-  NON_NUMBER_KEY_6                          0005EE  1518
+  NON_NUMBER_KEY_3                          0005B8  1464
+  NON_NUMBER_KEY_5                          0005EA  1514
+  NON_NUMBER_KEY_6                          000602  1538
   NON_NUMERIC                               00055F  1375
   NON_SPECIAL_FUNCTION                      000555  1365
-  NOP_MNEMONIC                              0006B6  1718
+  NOP_MNEMONIC                              0006CD  1741
   NUMBER_KEY_1                              000582  1410
   NUMBER_KEY_2                              000592  1426
-  NUMBER_KEY_3                              0005AE  1454
-  NUMBER_KEY_4                              0005BC  1468
-  NUMBER_KEY_5                              0005CC  1484
-  NUMBER_KEY_6                              0005E6  1510
+  NUMBER_KEY_3                              0005B0  1456
+  NUMBER_KEY_4                              0005BE  1470
+  NUMBER_KEY_5                              0005E0  1504
+  NUMBER_KEY_6                              0005FA  1530
+  NZERO_JZ_MNEMONIC                         000765  1893
   ORG_CLICK_0                               000574  1396
-  ORG_CLICK_7                               0005F4  1524
+  ORG_CLICK_7                               000608  1544
+  RESET_DATA_REG                            000630  1584
+  RET_MNEMONIC                              00071A  1818
   ROW1                                      000519  1305
   ROW2                                      000523  1315
   ROW3                                      00052F  1327
   ROW4                                      00053B  1339
-  RUN_CODE                                  0006A5  1701
-  RUN_EXE                                   000698  1688
-  SET_DATA_ON_SEGMENT                       000658  1624
-  SHOW_ON_SEGMENT                           000662  1634
-  SHOW_R2_ON_SEGMENT                        000660  1632
-  UPDATE_ADDRESS_INPUT                      000620  1568
-  UPDATE_DATA_INPUT                         000627  1575
-  UPDATE_MEMORY                             00069C  1692
+  RUN_CODE                                  0006BB  1723
+  RUN_EXE                                   0006AE  1710
+  SET_DATA_ON_SEGMENT                       000671  1649
+  SHOW_ON_SEGMENT                           00067B  1659
+  SHOW_R2_ON_SEGMENT                        000679  1657
+  START                                     000687  1671
+  UPDATE_ADDRESS_INPUT                      000639  1593
+  UPDATE_DATA_INPUT                         000640  1600
+  UPDATE_MEMORY                             0006B2  1714
   UPDATE_STATE_FLAGS                        000548  1352
-  WAIT1                                     0006EE  1774
-  WAIT2                                     0006E3  1763
-  WRONG_KEY                                 00061B  1563
+  WAIT1                                     0007EF  2031
+  WAIT2                                     0007E4  2020
+  WRONG_KEY                                 00062B  1579
   WRONG_KEY_0                               00057C  1404
-  WRONG_KEY_3                               0005AE  1454
-  WRONG_KEY_6                               0005E6  1510
-  WRONG_KEY_7                               000618  1560
-  WRONG_PRESS                               00068A  1674
+  WRONG_KEY_3                               0005B0  1456
+  WRONG_KEY_4                               0005DA  1498
+  WRONG_KEY_6                               0005FA  1530
+  WRONG_KEY_7                               000628  1576
+  WRONG_PRESS                               0006A0  1696
+  ZERO_JZ_MNEMONIC                          000757  1879

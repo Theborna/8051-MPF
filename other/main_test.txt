@@ -1,0 +1,33 @@
+; start from house n and write 1-m
+
+MOV R2, #n   ; Set n to the desired value
+MOV R0, #m   ; Set R1 to the starting address m
+MOV R5, #1   ; Initialize R2 to hold the current number
+LOOP:
+    MOV A, R5
+    MOV @R0, A   ; Write the current number to the memory location pointed by R1
+
+    INC R0       ; Increment the memory address
+    INC R5       ; Increment the current number
+
+    ; Decrement n and repeat the loop if not zero
+    DEC R2
+    MOV A, R2    
+    JNZ LOOP
+
+; machine code
+
+64: 7A (MOV R2, #data)
+65: n
+66: 78 (MOV R0, #data)
+67: m
+68: 7D (MOV A, #data)
+69: 1
+6A: ED (MOV A, R5)
+6B: F6 (MOV @R0, A)
+6C: 08 (INC R0)
+6D: 0D (INC R5)
+6E: 1A (DEC R2)
+6F: EA (MOV A, R2)
+70: 70 (JNZ reladdr)
+71: 6A
